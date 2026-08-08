@@ -80,7 +80,7 @@ export default async function HomePage() {
             {person.name}
             <span aria-hidden="true" className="cursor-blink" />
           </h1>
-          <p className="inline-md mt-6 max-w-[65ch]">
+          <p className="md-inline mt-6 max-w-[65ch]">
             {heroIntro()}
             <span dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(home.pitch) }} />
           </p>
@@ -111,7 +111,7 @@ export default async function HomePage() {
             {home.about.map((paragraph) => (
               <p
                 key={paragraph}
-                className="inline-md"
+                className="md-inline"
                 dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(paragraph) }}
               />
             ))}
@@ -249,7 +249,7 @@ export default async function HomePage() {
                       {item.emoji}
                     </span>
                     <span
-                      className="inline-md"
+                      className="md-inline"
                       dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(item.text) }}
                     />
                   </p>

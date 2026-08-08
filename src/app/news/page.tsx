@@ -52,7 +52,7 @@ export default async function NewsPage() {
                     {item.emoji}
                   </span>
                   <span
-                    className="inline-md"
+                    className="md-inline"
                     dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(item.text) }}
                   />
                 </p>
