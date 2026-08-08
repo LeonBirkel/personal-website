@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/* "Register" design system — precision-minimal, single accent, hairline rules. */
+
+:root {
+  --bg: #fbfbf9;
+  --surface: #f3f3ef;
+  --text: #1a1b1e;
+  --muted: #55585e;
+  --hairline: #e4e4df;
+  --accent: #c43d00;
+  --accent-hover: #a33200;
+
+  /* 1100px at the default 16px root. Everything below scales with the root
+     font size, so large screens get bigger type rather than wider margins. */
+  --container-max: 68.75rem;
+}
+
+/* Large displays: scale the root font size so type, spacing and the content
+   column all grow together. Media-query rem units always resolve against the
+   initial 16px root, so Tailwind's breakpoints are unaffected by this. */
+@media (width >= 1800px) {
+  :root {
+    font-size: 17px;
+
+    --container-max: 74rem;
+  }
+}
+
+@media (width >= 2400px) {
+  :root {
+    font-size: 19px;
+
+    --container-max: 80rem;
+  }
+}
+
+@media (width >= 3200px) {
+  :root {
+    font-size: 21px;
+
+    --container-max: 84rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101113;
+    --surface: #17181b;
+    --text: #e8e8e6;
+    --muted: #9a9da3;
+    --hairline: #26282c;
+    --accent: #ff6b2c;
+    --accent-hover: #ff8a55;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-hairline: var(--hairline);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Mono meta text: labels, dates, kickers, nav. Never body paragraphs. */
+  .mono-label {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .link-underline {
+    text-decoration: none;
+  }
+
+  .link-underline:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 3px;
+  }
+
+  /* Blinking accent block cursor after the hero name. */
+  .cursor-blink {
+    display: inline-block;
+    width: 0.12em;
+    height: 0.82em;
+    margin-left: 0.1em;
+    background: var(--accent);
+    animation: cursor-blink 1.1s steps(1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cursor-blink {
+      animation: none;
+    }
+  }
+
+  /* Inline-rendered markdown (news items): links must still look like links. */
+  .inline-md :where(a) {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 3px;
+  }
+
+  /* Rendered markdown (admin-authored long-form fields). */
+  .prose-md {
+    max-width: 65ch;
+  }
+
+  .prose-md :where(p):not(:first-child) {
+    margin-top: 0.75em;
+  }
+
+  .prose-md :where(a) {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 3px;
+  }
+
+  .prose-md :where(ul, ol) {
+    margin-top: 0.75em;
+    padding-left: 1.25em;
+  }
+
+  .prose-md :where(ul) {
+    list-style: disc;
+  }
+
+  .prose-md :where(ol) {
+    list-style: decimal;
+  }
+
+  .prose-md :where(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  .prose-md :where(strong) {
+    font-weight: 500;
+  }
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}

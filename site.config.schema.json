@@ -1,0 +1,705 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "configVersion": {
+      "type": "number",
+      "const": 1,
+      "description": "Config format version. A breaking schema change bumps it."
+    },
+    "site": {
+      "type": "object",
+      "properties": {
+        "canonicalOrigin": {
+          "type": "string",
+          "maxLength": 200,
+          "format": "uri",
+          "description": "Canonical production origin, e.g. https://example.org. Used for stable JSON-LD @id values, so entity IDs stay identical across environments. Never change it after launch."
+        },
+        "orgIdFragment": {
+          "default": "org",
+          "description": "Fragment of the affiliation Organization @id, e.g. \"tum\" for <origin>/#tum. Never change it after launch.",
+          "type": "string",
+          "maxLength": 40,
+          "pattern": "^[a-z0-9-]+$"
+        }
+      },
+      "required": [
+        "canonicalOrigin"
+      ],
+      "additionalProperties": false
+    },
+    "person": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Full name, spelled exactly as it should appear everywhere"
+        },
+        "givenName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "familyName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "jobTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "One-paragraph third-person summary. Meta description, JSON-LD description and llms.txt blurb."
+        },
+        "email": {
+          "description": "Never rendered where a crawler can read it: not in JSON-LD, not in markdown mirrors, not in server-rendered HTML. The only public surface is the obfuscated click-to-reveal on /contact. Omit to hide the email section entirely.",
+          "type": "string",
+          "maxLength": 200,
+          "format": "email",
+          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+        },
+        "location": {
+          "description": "Feeds JSON-LD occupationLocation and the footer line. Omit to drop both.",
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          },
+          "required": [
+            "city"
+          ],
+          "additionalProperties": false
+        },
+        "portraitPath": {
+          "default": "/uploads/portrait.jpg",
+          "description": "Path of the portrait photo, JSON-LD image and og:image. The default points at the admin uploads volume: upload portrait.jpg in /admin/settings. Both tags are omitted while the file is missing.",
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^\\/"
+        },
+        "researchTopics": {
+          "minItems": 1,
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "description": "JSON-LD knowsAbout and the home-page topics list"
+        },
+        "languagesLabel": {
+          "description": "Small label under the About section, e.g. \"DE Native · EN Fluent\". Omit to hide.",
+          "type": "string",
+          "maxLength": 120
+        },
+        "sameAs": {
+          "maxItems": 30,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri"
+          },
+          "description": "Profile URLs that identify the same person: Scholar, ORCID, LinkedIn, GitHub, Wikidata, ..."
+        },
+        "pendingSameAs": {
+          "default": [],
+          "description": "sameAs candidates that are not published yet. Appended once live is true.",
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "maxLength": 500,
+                "format": "uri"
+              },
+              "live": {
+                "type": "boolean",
+                "description": "Set true once the page actually exists. A sameAs entry that 404s weakens the entity graph instead of strengthening it."
+              }
+            },
+            "required": [
+              "url",
+              "live"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "name",
+        "givenName",
+        "familyName",
+        "jobTitle",
+        "description",
+        "researchTopics",
+        "sameAs"
+      ],
+      "additionalProperties": false
+    },
+    "affiliation": {
+      "description": "Omit entirely if there is no affiliation. JSON-LD then drops the Organization node.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "alternateName": {
+          "description": "Short name, e.g. \"TUM\"",
+          "type": "string",
+          "maxLength": 60
+        },
+        "department": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 500,
+          "format": "uri"
+        },
+        "departmentUrl": {
+          "type": "string",
+          "maxLength": 500,
+          "format": "uri"
+        },
+        "sameAs": {
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri"
+          },
+          "description": "Identity links of the organization: website, Wikidata, ROR"
+        }
+      },
+      "required": [
+        "name",
+        "url",
+        "sameAs"
+      ],
+      "additionalProperties": false
+    },
+    "background": {
+      "type": "object",
+      "properties": {
+        "experience": {
+          "maxItems": 30,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40,
+                "description": "Display range, e.g. \"2024 – 2025\""
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "org": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "ongoing": {
+                "description": "Current position, rendered with the accent dot",
+                "type": "boolean"
+              },
+              "credential": {
+                "description": "Education only: mark degrees that belong in JSON-LD hasCredential. Duplicate titles count once.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "period",
+              "title",
+              "org"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "education": {
+          "maxItems": 30,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40,
+                "description": "Display range, e.g. \"2024 – 2025\""
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "org": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "ongoing": {
+                "description": "Current position, rendered with the accent dot",
+                "type": "boolean"
+              },
+              "credential": {
+                "description": "Education only: mark degrees that belong in JSON-LD hasCredential. Duplicate titles count once.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "period",
+              "title",
+              "org"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "experience",
+        "education"
+      ],
+      "additionalProperties": false
+    },
+    "links": {
+      "maxItems": 15,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri"
+          },
+          "showOnContact": {
+            "description": "Also list this link on the contact page",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Link row on the home hero, in order. A Contact entry is appended automatically. Entries with showOnContact also appear on /contact."
+    },
+    "home": {
+      "type": "object",
+      "properties": {
+        "eyebrow": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Small line above the hero name, e.g. \"Munich, DE · Space Systems Security\""
+        },
+        "pitch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "description": "Hero paragraph, inline markdown. Rendered after the derived \"{jobTitle} at the {department}, {affiliation}.\" sentence."
+        },
+        "about": {
+          "minItems": 1,
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "description": "About paragraphs, inline markdown. The single source for the home page and the markdown mirror."
+        }
+      },
+      "required": [
+        "eyebrow",
+        "pitch",
+        "about"
+      ],
+      "additionalProperties": false
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "blurb": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "description": "Paragraph above the contact form, inline markdown"
+        },
+        "metaDescription": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "blurb",
+        "metaDescription"
+      ],
+      "additionalProperties": false
+    },
+    "pageDescriptions": {
+      "default": {},
+      "description": "Per-page meta descriptions. Omitted entries fall back to name-derived defaults.",
+      "type": "object",
+      "properties": {
+        "publications": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "projects": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "news": {
+          "type": "string",
+          "maxLength": 300
+        }
+      },
+      "additionalProperties": false
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "accent": {
+          "type": "object",
+          "properties": {
+            "light": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Six-digit hex color"
+            },
+            "dark": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Six-digit hex color"
+            }
+          },
+          "required": [
+            "light",
+            "dark"
+          ],
+          "additionalProperties": false,
+          "description": "Accent color, light and dark scheme"
+        },
+        "accentHover": {
+          "type": "object",
+          "properties": {
+            "light": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Six-digit hex color"
+            },
+            "dark": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Six-digit hex color"
+            }
+          },
+          "required": [
+            "light",
+            "dark"
+          ],
+          "additionalProperties": false,
+          "description": "Hover variant of the accent"
+        },
+        "initials": {
+          "description": "Wordmark and favicon initials. Defaults to first letters of given and family name.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3
+        }
+      },
+      "required": [
+        "accent",
+        "accentHover"
+      ],
+      "additionalProperties": false
+    },
+    "seedContent": {
+      "description": "Initial content, seeded into the database on first boot. Managed in /admin afterwards. Re-seeding by hand overwrites admin edits to seeded slugs.",
+      "type": "object",
+      "properties": {
+        "publications": {
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "authors": {
+                "minItems": 1,
+                "maxItems": 30,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              },
+              "venue": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "year": {
+                "type": "integer",
+                "minimum": 1900,
+                "maximum": 2100
+              },
+              "doi": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^10\\..+\\/.+$"
+                  },
+                  {
+                    "type": "string",
+                    "const": ""
+                  }
+                ]
+              },
+              "pdfUrl": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  {
+                    "type": "string",
+                    "const": ""
+                  }
+                ]
+              },
+              "abstract": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  {
+                    "type": "string",
+                    "const": ""
+                  }
+                ]
+              },
+              "bibtex": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  {
+                    "type": "string",
+                    "const": ""
+                  }
+                ]
+              },
+              "active": {
+                "default": true,
+                "type": "boolean"
+              },
+              "featured": {
+                "default": true,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "slug",
+              "title",
+              "authors",
+              "venue",
+              "year"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "projects": {
+          "default": [],
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 10000
+              },
+              "links": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    },
+                    "url": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "url"
+                  ]
+                }
+              },
+              "techTags": {
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                }
+              },
+              "active": {
+                "default": true,
+                "type": "boolean"
+              },
+              "featured": {
+                "default": true,
+                "type": "boolean"
+              },
+              "order": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9999
+              }
+            },
+            "required": [
+              "slug",
+              "title",
+              "summary",
+              "description",
+              "links",
+              "techTags",
+              "order"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "news": {
+          "default": [],
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                "description": "Stable identifier. It becomes the RSS GUID, the JSON Feed id and the JSON-LD anchor. Never change it after first publish."
+              },
+              "date": {},
+              "emoji": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "active": {
+                "default": true,
+                "type": "boolean"
+              },
+              "featured": {
+                "default": true,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "date",
+              "emoji",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "configVersion",
+    "site",
+    "person",
+    "background",
+    "links",
+    "home",
+    "contact",
+    "theme"
+  ],
+  "additionalProperties": false
+}

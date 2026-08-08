@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup leonbirkel.com database and uploads
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/site-backup
+Nice=10
+IOSchedulingClass=idle

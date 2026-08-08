@@ -1,0 +1,89 @@
+#!/bin/bash
+# Pull and roll the newest published image immediately, instead of waiting for
+# Watchtower's 03:00 window. Safe to run any time.
+set -euo pipefail
+DIR=/opt/personal-website
+cd "$DIR"
+
+log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $*"; }
+
+# Keep the currently running image so site-rollback has something local to fall
+# back on even if the registry credential has expired.
+current=$(docker inspect -f '{{.Image}}' personal-website-app 2>/dev/null || true)
+[ -n "$current" ] && docker tag "$current" personal-website:previous || true
+
+before=$(docker inspect -f '{{.Id}}' personal-website-app 2>/dev/null || echo none)
+
+log "pulling"
+docker compose pull app
+log "rolling"
+docker compose up -d app
+
+after=$(docker inspect -f '{{.Id}}' personal-website-app 2>/dev/null || echo none)
+
+status=missing
+for _ in $(seq 1 60); do
+  status=$(docker inspect -f '{{.State.Health.Status}}' personal-website-app 2>/dev/null || echo missing)
+  if [ "$status" = healthy ]; then
+    break
+  fi
+  sleep 5
+done
+
+if [ "$status" != healthy ]; then
+  log "FAILED: app did not become healthy. Recent logs:"
+  docker compose logs --tail 40 app
+  log "roll back with: site-rollback <previous-tag>   (or: docker tag personal-website:previous ghcr.io/leonbirkel/personal-website:latest && docker compose up -d app)"
+  exit 1
+fi
+log "healthy"
+
+# A new container starts with the pages that were prerendered at image build
+# time, against a throwaway empty database. Until the entrypoint has regenerated
+# them, the site serves a version with no projects and no news. Returning success
+# before that finishes is what makes a good deploy look stale.
+if [ "$after" != "$before" ]; then
+  log "waiting for the ISR warm-up"
+  warmed=no
+  for _ in $(seq 1 40); do
+    if docker logs "$after" 2>&1 | grep -q "ISR warm-up complete"; then
+      warmed=yes
+      break
+    fi
+    sleep 3
+  done
+  if [ "$warmed" = yes ]; then
+    log "warm-up complete"
+  else
+    log "warning: no warm-up confirmation after 120s. Early visitors may see the build-time page."
+  fi
+else
+  log "container was not recreated, its cache is already warm"
+fi
+
+log "verifying through the proxy"
+code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 https://leonbirkel.com/api/health || echo 000)
+log "https://leonbirkel.com/api/health -> $code"
+if [ "$code" != 200 ]; then
+  log "warning: proxy did not return 200. Check the tunnel."
+fi
+
+# A 200 only proves the app answers. These count what a reader actually gets, so
+# an empty page or a database that lost its content shows up here as a number.
+projects=$(curl -s --max-time 20 https://leonbirkel.com/projects.md | grep -c '^## ' || true)
+news=$(curl -s --max-time 20 https://leonbirkel.com/news.md | grep -c '^- 2' || true)
+pubs=$(curl -s --max-time 20 https://leonbirkel.com/publications.md | grep -c '^- \[' || true)
+log "live content: $projects projects, $news news items, $pubs publications"
+
+# The feed is checked separately because it went stale independently of the
+# pages once, and an empty RSS feed is served silently to the crawlers this
+# site exists for.
+rss=$(curl -s --max-time 20 https://leonbirkel.com/news/feed.xml | grep -c '<item>' || true)
+log "news/feed.xml: $rss items"
+
+if [ "$projects" -eq 0 ] || [ "$news" -eq 0 ] || [ "$pubs" -eq 0 ] || [ "$rss" -eq 0 ]; then
+  log "warning: a content surface came back empty. Check the database before assuming the deploy is good."
+fi
+if [ "$rss" -ne "$news" ]; then
+  log "warning: the feed and the news page disagree ($rss vs $news). One of them is serving a stale render."
+fi

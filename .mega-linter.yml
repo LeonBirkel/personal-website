@@ -1,0 +1,17 @@
+# MegaLinter — Prettier + Stylelint only. ESLint intentionally does NOT run
+# here: MegaLinter v8 bundles ESLint 8, which cannot load our ESLint 9 flat
+# config (it passes removed CLI flags like --no-eslintrc). ESLint 9 runs
+# natively in the check-build job via `npm run check`, which also mirrors the
+# prettier/stylelint checks locally.
+APPLY_FIXES: none
+# The workflow token is contents:read only (least privilege) — the GitHub
+# reporters would 403 trying to post comments/statuses, failing the run.
+GITHUB_COMMENT_REPORTER: false
+GITHUB_STATUS_REPORTER: false
+ENABLE_LINTERS:
+  - CSS_STYLELINT
+  - JSON_PRETTIER
+  - YAML_PRETTIER
+FILTER_REGEX_EXCLUDE: "(node_modules|\\.next|src/generated|prisma/migrations|uploads|package-lock\\.json)"
+SHOW_ELAPSED_TIME: true
+FAIL_IF_MISSING_LINTER_IN_FLAVOR: false

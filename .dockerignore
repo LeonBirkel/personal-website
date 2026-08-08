@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.sample
+uploads
+coverage
+src/generated
+*.md
+.github
+.claude
+ops
+# The image must carry zero instance data. The build renders against
+# deploy/site.config.example.json; real configs are mounted at runtime.
+site.config.json

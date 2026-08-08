@@ -1,0 +1,26 @@
+#!/bin/bash
+# Roll back to a specific published release: site-rollback v1.0.0
+# Note this does NOT undo database migrations. If the bad release migrated the
+# schema, restore the database first with site-restore.
+set -euo pipefail
+[ $# -eq 1 ] || { echo "usage: site-rollback vX.Y.Z"; exit 2; }
+TAG=$1
+DIR=/opt/personal-website
+IMG=ghcr.io/leonbirkel/personal-website
+
+cd "$DIR"
+echo "pinning $IMG:$TAG"
+docker pull "$IMG:$TAG"
+# Retag locally so compose (which tracks :latest) starts the chosen release.
+docker tag "$IMG:$TAG" "$IMG:latest"
+docker compose up -d app
+
+for _ in $(seq 1 60); do
+  [ "$(docker inspect -f '{{.State.Health.Status}}' personal-website-app 2>/dev/null)" = healthy ] && {
+    echo "rolled back to $TAG and healthy"
+    echo "NOTE: Watchtower will move back to the published :latest at 03:00 UTC."
+    echo "      Publish a fixed release, or stop watchtower, before then."
+    exit 0; }
+  sleep 5
+done
+echo "FAILED: $TAG did not become healthy"; docker compose logs --tail 40 app; exit 1

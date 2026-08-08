@@ -1,0 +1,55 @@
+#!/bin/bash
+# Nightly backup of leonbirkel.com: database dump plus the uploads volume.
+# Runs at 02:30 UTC, 30 minutes before Watchtower's 03:00 update window, so a
+# known-good dump always predates an unattended deploy.
+set -euo pipefail
+
+DIR=/opt/personal-website
+DEST=/var/backups/personal-website
+KEEP_DAILY=14
+MIN_FREE_MB=2048
+
+log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $*"; }
+die() { log "FAILED: $*"; exit 1; }
+
+mkdir -p "$DEST/daily"
+
+free_mb=$(df -Pm "$DEST" | awk 'NR==2{print $4}')
+[ "$free_mb" -ge "$MIN_FREE_MB" ] || die "only ${free_mb}MB free, need ${MIN_FREE_MB}MB"
+
+# shellcheck disable=SC1091
+set -a; . "$DIR/.env"; set +a
+
+stamp=$(date -u +%Y%m%d-%H%M%S)
+dump="$DEST/daily/db-$stamp.dump"
+
+# Custom format so pg_restore can verify and selectively restore. Dumped from
+# inside the container, which guarantees client and server versions match.
+docker exec personal-website-db pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  --format=custom --compress=9 > "$dump.part" || die "pg_dump failed"
+
+# A dump that cannot be listed is not a backup. Verify before promoting it, so
+# retention never deletes good backups in favour of a truncated one.
+pg_restore --list "$dump.part" >/dev/null 2>&1 \
+  || docker run --rm -v "$DEST/daily:/b" postgres:17-alpine \
+       pg_restore --list "/b/$(basename "$dump.part")" >/dev/null \
+  || die "dump did not verify, keeping previous backups"
+
+tables=$(docker run --rm -v "$DEST/daily:/b" postgres:17-alpine \
+           pg_restore --list "/b/$(basename "$dump.part")" | grep -c "TABLE DATA" || true)
+[ "${tables:-0}" -ge 5 ] || die "dump contains only ${tables} tables, refusing to promote"
+
+mv "$dump.part" "$dump"
+
+# Uploads volume: the only copy of the portrait and any publication PDFs.
+docker run --rm -v personal-website_uploads:/u:ro -v "$DEST/daily:/out" alpine:3 \
+  tar -C /u -czf "/out/uploads-$stamp.tar.gz" . || die "uploads tar failed"
+
+ln -sfn "$dump" "$DEST/latest.dump"
+ln -sfn "$DEST/daily/uploads-$stamp.tar.gz" "$DEST/latest-uploads.tar.gz"
+
+# Retention. Symlinks above always point at a file that survives this.
+ls -1t "$DEST"/daily/db-*.dump 2>/dev/null | tail -n +$((KEEP_DAILY + 1)) | xargs -r rm -f
+ls -1t "$DEST"/daily/uploads-*.tar.gz 2>/dev/null | tail -n +$((KEEP_DAILY + 1)) | xargs -r rm -f
+
+log "ok: $(basename "$dump") ($(du -h "$dump" | cut -f1)), ${tables} tables, $(ls -1 "$DEST"/daily/db-*.dump | wc -l) kept"

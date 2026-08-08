@@ -1,0 +1,164 @@
+name: CD
+
+# Releases are cut by pushing a version tag. This workflow only builds and
+# publishes the image. It never contacts any server: deployment is pull-based.
+# Instances on the v1 channel (or :latest) pick the release up on their next
+# Watchtower poll, pinned instances update APP_IMAGE by hand.
+#
+# The image name derives from the repository, so forks publish to their own
+# GHCR namespace with zero edits.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag must match package.json
+        run: |
+          pkg="v$(node -p "require('./package.json').version")"
+          if [ "$pkg" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::package.json is $pkg but the tag is $GITHUB_REF_NAME."
+            echo "::error::Release with: npm version X.Y.Z && git push origin main --follow-tags"
+            exit 1
+          fi
+
+  # Native runners per architecture: no QEMU, each leg builds at full speed
+  # and pushes by digest. The merge job assembles the multi-arch manifest.
+  build:
+    needs: preflight
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compute image name
+        # Lowercase on purpose. Docker rejects mixed-case repository names.
+        run: |
+          echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "PLATFORM_SLUG=$(echo '${{ matrix.platform }}' | tr '/' '-')" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v7
+        id: build
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          provenance: false
+          sbom: false
+          cache-from: type=gha,scope=${{ env.PLATFORM_SLUG }}
+          cache-to: type=gha,mode=max,scope=${{ env.PLATFORM_SLUG }}
+
+      - name: Export digest
+        run: |
+          mkdir -p "${{ runner.temp }}/digests"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_SLUG }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: ${{ env.IMAGE }}
+          # Three channels: exact version (pin), floating major (safe
+          # auto-updates, never a breaking change), latest (everything).
+          # No floating major is published while on 0.x.
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}},enable=${{ !startsWith(github.ref_name, 'v0.') }}
+            type=raw,value=latest
+
+      - name: Create multi-arch manifest
+        # One imagetools invocation applies every tag to the same manifest
+        # list, so all channels share one digest.
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf "$IMAGE@sha256:%s " *)
+
+      - name: Verify the published manifest
+        run: |
+          set -euo pipefail
+          platforms=$(docker buildx imagetools inspect "$IMAGE:$GITHUB_REF_NAME" --raw |
+            jq -r '[.manifests[].platform | select(.os != "unknown") | "\(.os)/\(.architecture)"] | sort | join(",")')
+          echo "published $GITHUB_REF_NAME -> $platforms"
+          test "$platforms" = "linux/amd64,linux/arm64"
+
+      - name: Release summary
+        run: |
+          {
+            echo "### Released \`${GITHUB_REF_NAME}\`"
+            echo
+            echo "Image: \`${IMAGE}:${GITHUB_REF_NAME}\` (linux/amd64, linux/arm64)"
+            echo "Also tagged: $(jq -cr '.tags | join(", ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")"
+            echo
+            echo "Instances on the \`v1\` channel or \`latest\` pick this up on their next"
+            echo "Watchtower poll. Pinned instances set \`APP_IMAGE\` and run \`docker compose up -d\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    needs: merge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: GitHub Release with generated notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}"
+          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes \
+            --notes "Image: \`${image}\` (linux/amd64, linux/arm64)"

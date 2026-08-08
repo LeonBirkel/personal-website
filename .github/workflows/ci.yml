@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/personal_website
+  BETTER_AUTH_SECRET: ci-only-secret-not-used-in-production
+  BETTER_AUTH_URL: http://localhost:3000
+  SITE_URL: http://localhost:3000
+  ADMIN_EMAIL: ci@example.com
+  ADMIN_PASSWORD: ci-only-password
+  # CI runs entirely as the fictional example person, proving the framework
+  # carries no baked-in instance data.
+  SITE_CONFIG_PATH: deploy/site.config.example.json
+
+jobs:
+  check-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: personal_website
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Typecheck + lint + format
+        run: npm run check
+      - name: Duplication check (jscpd)
+        run: npx jscpd src
+      - name: Config schema in sync
+        run: npm run schema:check
+      - name: Validate site configs
+        run: |
+          npx tsx scripts/validate-site-config.ts deploy/site.config.example.json
+          npx tsx scripts/validate-site-config.ts site.config.json
+
+      # The ops scripts run as root on the production server. They deserve the
+      # same scrutiny as the app, which they did not get while they lived only
+      # on that machine.
+      - name: Shellcheck the ops scripts
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck --severity=warning ops/bin/* ops/install.sh docker/entrypoint.sh
+      - name: Migrate + seed
+        run: |
+          npx prisma migrate deploy
+          npm run seed
+      - name: Build
+        run: npm run build
+      - name: npm audit
+        run: npm audit --audit-level=high
+      - name: Structured-data smoke test
+        run: |
+          npx next start -p 3000 &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 >/dev/null && break; sleep 1; done
+          node scripts/smoke-structured-data.mjs http://localhost:3000
+
+  # Prettier + Stylelint only — ESLint 9 (flat config) is incompatible with
+  # MegaLinter's bundled ESLint 8 and runs natively in check-build instead.
+  megalinter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: MegaLinter
+        uses: oxsecurity/megalinter/flavors/javascript@v9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: true

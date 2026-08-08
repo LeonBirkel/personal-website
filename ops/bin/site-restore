@@ -1,0 +1,66 @@
+#!/bin/bash
+# Restore leonbirkel.com's database from a site-backup dump.
+#   site-restore                  # newest daily backup
+#   site-restore /path/to.dump    # a specific one
+#
+# On failure the app is deliberately left STOPPED. The database is then in an
+# unknown state, and starting the app would run prisma migrate deploy against
+# it, which can turn a recoverable problem into an unrecoverable one.
+set -euo pipefail
+
+DIR=/opt/personal-website
+DEST=/var/backups/personal-website
+SAFETY=/var/backups/personal-website-pre-restore
+
+log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $*"; }
+die() { log "FAILED: $*"; log "app left stopped on purpose. Inspect, then: cd $DIR && docker compose up -d app"; exit 1; }
+
+src=${1:-$DEST/latest.dump}
+[ -f "$src" ] || die "no such dump: $src"
+
+# shellcheck disable=SC1091
+set -a; . "$DIR/.env"; set +a
+
+log "verifying $src"
+docker run --rm -v "$(dirname "$(readlink -f "$src")"):/b:ro" postgres:17-alpine \
+  pg_restore --list "/b/$(basename "$(readlink -f "$src")")" >/dev/null || die "dump does not verify"
+
+mkdir -p "$SAFETY"
+log "taking a pre-restore snapshot"
+docker exec personal-website-db pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  --format=custom --compress=9 > "$SAFETY/pre-restore-$(date -u +%Y%m%d-%H%M%S).dump" \
+  || log "warning: pre-restore snapshot failed, continuing"
+ls -1t "$SAFETY"/pre-restore-*.dump 2>/dev/null | tail -n +4 | xargs -r rm -f
+
+cd "$DIR"
+log "stopping app"
+docker compose stop app
+
+log "restoring"
+docker exec -i personal-website-db pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  --clean --if-exists --no-owner --single-transaction --exit-on-error < "$src" \
+  || die "pg_restore failed, database rolled back to its previous contents"
+
+# The uploads volume holds the portrait and any publication PDFs. It is backed
+# up alongside the database, so it has to be restorable alongside it too.
+up_src=$(dirname "$(readlink -f "$src")")
+up_stamp=$(basename "$(readlink -f "$src")" | sed -E "s/^db-(.*)\.dump$/\1/")
+up_tar="$up_src/uploads-$up_stamp.tar.gz"
+if [ -f "$up_tar" ]; then
+  log "restoring uploads from $(basename "$up_tar")"
+  docker run --rm -v personal-website_uploads:/u -v "$up_src:/b:ro" alpine:3 \
+    sh -c "rm -rf /u/* /u/.[!.]* 2>/dev/null; tar -C /u -xzf /b/$(basename "$up_tar")" \
+    || die "uploads restore failed"
+else
+  log "warning: no uploads tarball alongside this dump, leaving the volume untouched"
+fi
+
+log "starting app"
+docker compose up -d app
+for _ in $(seq 1 60); do
+  if [ "$(docker inspect -f "{{.State.Health.Status}}" personal-website-app 2>/dev/null)" = healthy ]; then
+    log "restore complete, app healthy"; exit 0
+  fi
+  sleep 5
+done
+die "app did not become healthy after restore"

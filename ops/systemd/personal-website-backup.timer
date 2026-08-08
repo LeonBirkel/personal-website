@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily backup of leonbirkel.com at 02:30 UTC
+
+[Timer]
+# 30 minutes before Watchtower 03:00, so a good dump always predates a deploy.
+OnCalendar=*-*-* 02:30:00 UTC
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

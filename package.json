@@ -1,0 +1,57 @@
+{
+  "name": "personal-website",
+  "version": "0.3.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "prisma migrate deploy && next dev",
+    "build": "next build",
+    "start": "next start",
+    "check": "tsc --noEmit && eslint . && prettier --check . && stylelint \"src/**/*.css\"",
+    "lint": "eslint .",
+    "format": "prettier --write . && stylelint \"src/**/*.css\" --fix",
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "studio": "prisma studio",
+    "seed": "tsx prisma/seed.ts",
+    "db:reseed": "prisma migrate deploy && tsx prisma/reset-content.ts && tsx prisma/seed.ts",
+    "schema": "tsx scripts/generate-config-schema.ts",
+    "schema:check": "tsx scripts/generate-config-schema.ts --check",
+    "config:validate": "tsx scripts/validate-site-config.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.0.2",
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "better-auth": "^1.6.26",
+    "dotenv": "^17.2.3",
+    "marked": "^18.0.9",
+    "next": "^16.3.0",
+    "png-to-ico": "^3.0.2",
+    "prisma": "^7.9.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "schema-dts": "^2.0.0",
+    "tsx": "^4.23.11",
+    "zod": "^4.1.12"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.0",
+    "jscpd": "^5.0.14",
+    "prettier": "^3.6.2",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^6.0.3"
+  }
+}

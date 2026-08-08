@@ -1,0 +1,127 @@
+{
+  "$schema": "../site.config.schema.json",
+  "configVersion": 1,
+  "site": {
+    "canonicalOrigin": "https://ada.example.org",
+    "orgIdFragment": "exampleuni"
+  },
+  "person": {
+    "name": "Ada Example",
+    "givenName": "Ada",
+    "familyName": "Example",
+    "jobTitle": "Doctoral Candidate",
+    "description": "Ada Example is a doctoral candidate at the Chair of Example Systems at Example University. She researches distributed systems reliability, covering both consensus protocols and failure detection.",
+    "email": "ada@example.org",
+    "location": { "city": "Exampleville" },
+    "researchTopics": [
+      "distributed systems reliability",
+      "consensus protocols",
+      "failure detection",
+      "formal verification"
+    ],
+    "languagesLabel": "EN Native · FR Fluent",
+    "sameAs": [
+      "https://scholar.google.com/citations?user=EXAMPLE0000",
+      "https://orcid.org/0000-0000-0000-0000",
+      "https://github.com/ada-example"
+    ],
+    "pendingSameAs": [{ "url": "https://www.example-university.example/staff/ada/", "live": false }]
+  },
+  "affiliation": {
+    "name": "Example University",
+    "alternateName": "EU",
+    "department": "Chair of Example Systems",
+    "url": "https://www.example-university.example/",
+    "departmentUrl": "https://www.example-university.example/example-systems/",
+    "sameAs": ["https://www.example-university.example/"]
+  },
+  "background": {
+    "experience": [
+      {
+        "period": "2026 – present",
+        "title": "Doctoral Candidate",
+        "org": "Chair of Example Systems, Example University",
+        "ongoing": true
+      },
+      {
+        "period": "2024 – 2026",
+        "title": "Research Assistant",
+        "org": "Example Research Institute"
+      }
+    ],
+    "education": [
+      {
+        "period": "2024 – 2026",
+        "title": "M.Sc. Computer Science",
+        "org": "Example University",
+        "credential": true
+      },
+      {
+        "period": "2021 – 2024",
+        "title": "B.Sc. Computer Science",
+        "org": "Example University",
+        "credential": true
+      }
+    ]
+  },
+  "links": [
+    { "label": "GitHub", "url": "https://github.com/ada-example", "showOnContact": true },
+    { "label": "Scholar", "url": "https://scholar.google.com/citations?user=EXAMPLE0000" },
+    { "label": "ORCID", "url": "https://orcid.org/0000-0000-0000-0000" }
+  ],
+  "home": {
+    "eyebrow": "Exampleville · Distributed Systems",
+    "pitch": "I research distributed systems reliability. My work asks how systems can keep their promises when parts of them fail.",
+    "about": [
+      "I am a doctoral candidate at the [Chair of Example Systems](https://www.example-university.example/example-systems/) at Example University, working on distributed systems reliability: how large systems detect failures and keep agreeing on state.",
+      "Before the doctorate I worked as a research assistant at the Example Research Institute, where I built testbeds for consensus protocols under injected faults."
+    ]
+  },
+  "contact": {
+    "blurb": "Open to conversations about distributed systems and research collaborations. The quickest way to reach me is this form:",
+    "metaDescription": "Get in touch with Ada Example about distributed systems or research."
+  },
+  "pageDescriptions": {},
+  "theme": {
+    "accent": { "light": "#c43d00", "dark": "#ff6b2c" },
+    "accentHover": { "light": "#a33200", "dark": "#ff8a55" }
+  },
+  "seedContent": {
+    "publications": [
+      {
+        "slug": "example-consensus-under-partial-failure",
+        "title": "Consensus Under Partial Failure: An Example Study",
+        "authors": ["Ada Example", "Sam Sample"],
+        "venue": "Example Conference on Distributed Systems (ECDS 2025)",
+        "year": 2025,
+        "abstract": "This is placeholder abstract text for the example configuration. Replace the whole seedContent section with your own publications, projects and news before launching your site.",
+        "bibtex": "@inproceedings{example2025consensus,\n  author    = {Example, Ada and Sample, Sam},\n  title     = {Consensus Under Partial Failure: An Example Study},\n  booktitle = {Example Conference on Distributed Systems (ECDS 2025)},\n  year      = {2025},\n}"
+      }
+    ],
+    "projects": [
+      {
+        "slug": "fault-injection-testbed",
+        "title": "Fault-injection testbed for consensus protocols",
+        "summary": "A reproducible testbed that injects network faults into consensus clusters and records how they recover.",
+        "description": "Placeholder project description for the example configuration. Long-form fields are markdown, so **bold**, links and lists all work.\n\nReplace this with your own projects.",
+        "links": [{ "label": "Source", "url": "https://github.com/ada-example/testbed" }],
+        "techTags": ["Distributed systems", "Fault injection"],
+        "order": 1
+      }
+    ],
+    "news": [
+      {
+        "id": "seed-news-website",
+        "date": "2026-01-01T00:00:00.000Z",
+        "emoji": "🌐",
+        "text": "This website went live."
+      },
+      {
+        "id": "seed-news-ecds-paper",
+        "date": "2025-06-01T00:00:00.000Z",
+        "emoji": "📄",
+        "text": "Our paper on consensus under partial failure appeared at ECDS 2025."
+      }
+    ]
+  }
+}

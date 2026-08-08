@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+build
+src/generated
+uploads
+package-lock.json
+prisma/migrations
+ops/bin
+ops/systemd
+
+# generated from src/config/site-config-schema.ts, not hand-formatted
+site.config.schema.json

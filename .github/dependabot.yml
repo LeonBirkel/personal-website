@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # typescript-eslint does not support TS >= 7 yet (typescript-eslint#10940),
+      # and eslint-config-next@16 bundles an eslint-plugin-react that crashes on
+      # ESLint 10. Re-check both when Next ships a config supporting them.
+      - dependency-name: typescript
+        versions: [">=7"]
+      - dependency-name: eslint
+        versions: [">=10"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # CLAUDE.md mandates Node.js LTS; odd-numbered majors are not LTS.
+      - dependency-name: node
+        versions: ["25", "27", "29", "31"]

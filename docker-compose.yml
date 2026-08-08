@@ -1,0 +1,50 @@
+# Development compose file. Deploying your own instance? Use deploy/compose.yaml,
+# which pulls the published image instead of building locally.
+services:
+  db:
+    image: postgres:17-alpine
+    profiles: ["db", "production"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-personal_website}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-personal_website}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/leonbirkel/personal-website:latest}
+    build:
+      context: .
+    profiles: ["production"]
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://postgres:postgres@db:5432/personal_website}
+      UPLOADS_DIR: /app/uploads
+    ports:
+      # Loopback only — Cloudflare-proxied traffic reaches the app via the
+      # host reverse path; 0.0.0.0 would bypass Cloudflare (and ufw) entirely.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - uploads:/app/uploads
+      # The instance identity. The image itself carries no personal data.
+      - ./site.config.json:/app/site.config.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:

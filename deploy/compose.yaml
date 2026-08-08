@@ -1,0 +1,103 @@
+# Runs your own instance of the framework from the published image.
+# Quickstart: see deploy/README.md. Development uses ../docker-compose.yml instead.
+#
+#   docker compose up -d                          app + database
+#   docker compose --profile watchtower up -d     also auto-update on new releases
+#   docker compose --profile tunnel up -d         also expose via Cloudflare Tunnel
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      # Required, no default. Set it in .env.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-personal_website}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-personal_website}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    # v1 is the recommended channel: every release of the current major, never
+    # a breaking one. Pin an exact vX.Y.Z via APP_IMAGE in .env to opt out of
+    # updates, or use :latest to follow every release including majors.
+    image: ${APP_IMAGE:-ghcr.io/leonbirkel/personal-website:v1}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-personal_website}
+      UPLOADS_DIR: /app/uploads
+    ports:
+      # Loopback only, for a reverse proxy or connector running on the host.
+      # Behind your own firewall you can change 127.0.0.1 to 0.0.0.0. With the
+      # tunnel profile you can delete this mapping entirely.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - uploads:/app/uploads
+      # Your identity. The published image carries no personal data.
+      - ./site.config.json:/app/site.config.json:ro
+    networks:
+      - internal
+      - default
+    labels:
+      # Only the app opts into auto-updates. Postgres never auto-updates: a
+      # surprise major version would strand the data directory.
+      com.centurylinklabs.watchtower.enable: "true"
+      com.centurylinklabs.watchtower.scope: personal-website
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-T", "3", "-O", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # Optional auto-updates. If you already run Watchtower on this host, do not
+  # enable this profile. Add the scope labels to your existing instance instead.
+  watchtower:
+    image: containrrr/watchtower
+    profiles: ["watchtower"]
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_SCOPE: personal-website
+      WATCHTOWER_CLEANUP: "true"
+      # Daily. New releases roll within 24 hours.
+      WATCHTOWER_POLL_INTERVAL: "86400"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      com.centurylinklabs.watchtower.scope: personal-website
+
+  # Optional Cloudflare Tunnel: serve the site with no inbound port open at
+  # all. Create the tunnel in the Cloudflare Zero Trust dashboard, point its
+  # public hostname at http://app:3000, and put the token in .env.
+  tunnel:
+    image: cloudflare/cloudflared
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN:-}
+    networks:
+      - default
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  # Postgres is reachable only from the app, and has no route out.
+  internal:
+    internal: true
+  default:
