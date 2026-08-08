@@ -40,7 +40,7 @@ export default function ContactPage() {
       <PageHeader index="04" label="Contact" title="Contact" />
       <Container className="py-10 md:py-14">
         <p
-          className="inline-md max-w-[65ch]"
+          className="md-inline max-w-[65ch]"
           dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(contact.blurb) }}
         />
         <div className="mt-8">

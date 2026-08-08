@@ -67,6 +67,17 @@ jobs:
           npm run seed
       - name: Build
         run: npm run build
+      # A component class that collides with a Tailwind utility namespace makes
+      # Tailwind emit a second rule for it (inline-md once became
+      # inline-size: 28rem and shrank every tagged paragraph). Fail if any of
+      # our component classes picked up a generated sizing rule.
+      - name: Component classes must not collide with Tailwind utilities
+        run: |
+          css=$(find .next/static -name "*.css" | head -1)
+          if grep -qE '\.(md-inline|mono-label|link-underline|cursor-blink|prose-md)\{[^}]*(inline-size|block-size)' "$css"; then
+            echo "::error::A globals.css component class collides with a Tailwind utility namespace."
+            exit 1
+          fi
       - name: npm audit
         run: npm audit --audit-level=high
       - name: Structured-data smoke test

@@ -125,8 +125,12 @@ body {
     }
   }
 
-  /* Inline-rendered markdown (news items): links must still look like links. */
-  .inline-md :where(a) {
+  /* Inline-rendered markdown (news, bio paragraphs): links must still look
+     like links. Class names in this layer must never collide with a Tailwind
+     utility namespace: `inline-md` once matched Tailwind's `inline-*` width
+     scale and silently clamped every paragraph to 28rem. CI greps the built
+     CSS to catch that. */
+  .md-inline :where(a) {
     text-decoration: underline;
     text-decoration-color: var(--accent);
     text-underline-offset: 3px;
