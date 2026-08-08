@@ -131,7 +131,9 @@ npm version minor              # or patch / major. Bumps, commits and tags
 git push origin main --follow-tags
 ```
 
-CI must be green. CD builds linux/amd64 and linux/arm64 on native runners,
+Main is push-protected: the push delivers the tag, and the version commit
+lands through a small follow-up PR. Details in [CICD.md](CICD.md). CI must
+be green. CD builds linux/amd64 and linux/arm64 on native runners,
 publishes the manifest to GHCR under `vX.Y.Z`, `vN` and `latest`, and creates
 a GitHub release with generated notes. Details in [CICD.md](CICD.md).
 

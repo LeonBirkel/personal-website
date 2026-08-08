@@ -30,10 +30,13 @@ proves the framework ships no baked-in instance data.
 3. `npx jscpd src`, the duplication gate
 4. `npm run schema:check`, so `site.config.schema.json` never drifts from the Zod schema
 5. validation of both the example config and the reference instance's config
-6. `prisma migrate deploy` and `npm run seed`
-7. `npm run build`
-8. `npm audit --audit-level=high`
-9. the structured-data smoke test against a real server started from the build
+6. shellcheck over `ops/bin`, `ops/install.sh` and the Docker entrypoint
+7. `prisma migrate deploy` and `npm run seed`
+8. `npm run build`
+9. a built-CSS grep that fails if a `globals.css` component class collides with a
+   Tailwind utility namespace (that once shrank every tagged paragraph to 28rem)
+10. `npm audit --audit-level=high`
+11. the structured-data smoke test against a real server started from the build
 
 **megalinter** runs Prettier and Stylelint across the whole repository. It
 deliberately does not run ESLint, because MegaLinter v9 bundles ESLint 8,
@@ -47,9 +50,15 @@ will agree with your machine.
 
 ```bash
 git checkout main && git pull
-npm version minor                       # or patch / major; bumps, commits, tags
+npm version minor          # or patch / major. Bumps package.json, commits and tags
 git push origin main --follow-tags
 ```
+
+Main is push-protected, so this push delivers the tag and rejects the version
+commit. That is expected: CD builds from the tag, whose commit carries the
+right version, and the preflight guard passes. Land the version commit
+afterwards through a small PR from a branch at that commit (see #37 and #40
+for the pattern), so the next release computes from the right base.
 
 `.github/workflows/cd.yml` then:
 
