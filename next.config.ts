@@ -8,13 +8,22 @@ const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 /**
  * Content Security Policy.
  *
- * script-src carries 'unsafe-inline' on purpose. Next.js streams the RSC
- * payload through inline `self.__next_f.push(...)` blocks, and the only way to
- * allow those without 'unsafe-inline' is a per-request nonce. A nonce forces
- * every page to render dynamically, which would cost the site its prerendered
- * SSG/ISR output. Crawlability outranks a directive that buys little here: the
- * site has no user-generated HTML sink, so the policy earns its keep through
- * object-src, base-uri, form-action, and frame-ancestors instead.
+ * Inline script elements must stay allowed. Next.js streams the RSC payload
+ * through inline `self.__next_f.push(...)` blocks, and the only way to allow
+ * those without an inline keyword is a per-request nonce. A nonce forces every
+ * page to render dynamically, which would cost the site its prerendered
+ * SSG/ISR output. Crawlability outranks that trade.
+ *
+ * The allowance therefore lives in script-src-elem, the CSP3 directive that
+ * governs script elements. It also governs javascript: navigation, so those
+ * URLs stay permitted exactly as they were before. script-src no longer
+ * carries 'unsafe-inline', which newly blocks inline event handler attributes
+ * (nothing in the app or its content uses them) and keeps eval blocked. For
+ * script elements the effective policy is unchanged. Browsers without
+ * script-src-elem (Chrome before 75, Safari before 15.4, Firefox before 108)
+ * fall back to script-src and lose hydration. They sit below Next.js 16's own
+ * browser support floor, and every public page still renders its complete
+ * content without JavaScript.
  *
  * Dev mode needs 'unsafe-eval' and a websocket for React Fast Refresh, so those
  * two relaxations are gated on NODE_ENV and never ship to production.
@@ -22,7 +31,8 @@ const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 function contentSecurityPolicy(): string {
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-inline'", TURNSTILE_ORIGIN],
+    "script-src": ["'self'", TURNSTILE_ORIGIN],
+    "script-src-elem": ["'self'", "'unsafe-inline'", TURNSTILE_ORIGIN],
     // Tailwind, next/font, and the runtime accent block are all inline styles.
     "style-src": ["'self'", "'unsafe-inline'"],
     // data: covers the generated favicon and manifest icons.
