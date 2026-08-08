@@ -174,8 +174,10 @@ The site must look deliberate on every common screen, not merely survive.
   renders larger text rather than the same text with more empty space.
 - Touch targets stay at least 44 px on phones and tablets. Hover-only
   affordances need a non-hover equivalent.
-- Verify changes at 390, 768, 1280, 1920 and 3840 px before calling a UI
-  change done.
+- Verify changes at 390, 768, 1280, 1920 and 3840 px **in a real browser**
+  before calling a UI change done. HTML-level diffs do not catch rendering
+  regressions: the v1.0.1 paragraph-width bug shipped with byte-verified
+  markup.
 
 ## Writing style (all prose, no exceptions)
 
@@ -259,7 +261,9 @@ Generate secrets with: `node -e "console.log(require('crypto').randomBytes(32).t
 ## CI/CD (GitHub Actions)
 
 CI on every push/PR: typecheck, MegaLinter (Prettier, Stylelint), jscpd,
-config schema sync check, config validation, `next build`, `npm audit`, and a
+config schema sync check, config validation, shellcheck over the ops
+scripts, `next build`, a built-CSS guard against component classes that
+collide with Tailwind utility namespaces, `npm audit`, and a
 **structured-data smoke test** (render key routes, assert JSON-LD parses and
 the configured `#person` `@id` is present). Dependabot enabled. CI runs as
 the fictional example person.
