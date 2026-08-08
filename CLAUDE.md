@@ -234,7 +234,8 @@ bodies.
 - `Project` — title, description, links, tech tags, active flag, order
 - `NewsItem` — date, emoji, short text (supervisor-style news feed)
 - `ContactInquiry` — name, email, subject, message, ip (spam prevention)
-- `GlobalSettings` — key-value store (holds the `seed:completed` flag)
+- `GlobalSettings` — key-value store (holds the `seed:completed` flag and the
+  Discord webhook URL for inquiry notifications)
 - Admin portal at `/admin`, protected by middleware RBAC (`role` field on user).
 
 ## Commands

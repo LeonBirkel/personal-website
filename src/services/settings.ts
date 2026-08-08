@@ -13,6 +13,10 @@ export async function setSetting(key: string, value: string): Promise<void> {
   });
 }
 
+export async function deleteSetting(key: string): Promise<void> {
+  await prisma.globalSettings.deleteMany({ where: { key } });
+}
+
 export async function listSettings(): Promise<{ key: string; value: string }[]> {
   return prisma.globalSettings.findMany({ orderBy: { key: "asc" } });
 }

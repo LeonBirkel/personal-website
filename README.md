@@ -31,8 +31,9 @@ author's own site. It runs the exact image this repository publishes.
   it (no JSON-LD, no mirrors, no HTML source). It is decoded client-side on
   `/contact`. The Turnstile-guarded contact form is the primary channel.
 - **Admin portal** at `/admin`. Single user (Better-Auth, Argon2id, sign-ups
-  disabled), CRUD for publications, projects and news, an inquiry inbox, and
-  uploads (portrait, PDFs) on a persistent volume. Every mutation revalidates
+  disabled), CRUD for publications, projects and news, an inquiry inbox with
+  optional Discord notifications, and uploads (portrait, PDFs) on a
+  persistent volume. Every mutation revalidates
   the affected pages and their machine-readable twins, then pings IndexNow.
 - **Identity theming.** Your name, wordmark initials, portrait, bio, accent
   color, and all copy come from the config. The visual system itself stays

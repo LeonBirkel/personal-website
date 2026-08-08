@@ -4,6 +4,8 @@ export type AdminFormState = {
   status: "idle" | "error";
   message?: string;
   errors?: Record<string, string>;
+  /** Echoed back on error so React 19's automatic form reset doesn't wipe input. */
+  values?: Record<string, string>;
 };
 
 export const ADMIN_FORM_IDLE: AdminFormState = { status: "idle" };

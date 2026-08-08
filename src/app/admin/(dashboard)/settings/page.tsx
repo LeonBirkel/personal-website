@@ -1,5 +1,7 @@
 import { Container, PageHeader } from "@/components/register";
+import { DISCORD_WEBHOOK_KEY } from "@/services/notifications";
 import { listSettings } from "@/services/settings";
+import { NotificationForm } from "./notification-form";
 import { SettingForm } from "./setting-form";
 import { UploadWidget } from "./upload-widget";
 import { requireAdmin } from "@/lib/admin-session";
@@ -7,6 +9,7 @@ import { requireAdmin } from "@/lib/admin-session";
 export default async function AdminSettingsPage() {
   await requireAdmin();
   const settings = await listSettings();
+  const webhookUrl = settings.find(({ key }) => key === DISCORD_WEBHOOK_KEY)?.value ?? "";
 
   return (
     <>
@@ -25,6 +28,20 @@ export default async function AdminSettingsPage() {
           </p>
           <div className="mt-4">
             <UploadWidget />
+          </div>
+        </section>
+
+        <section aria-labelledby="notifications-heading" className="mt-14">
+          <h2 id="notifications-heading" className="mono-label text-muted">
+            Notifications
+          </h2>
+          <p className="mt-2 max-w-[65ch] text-muted">
+            Every new contact inquiry can post a message to a Discord channel. Create a webhook in
+            your server (Server Settings → Integrations → Webhooks), paste its URL here and save.
+            The test button sends a hello to the channel so you can confirm the wiring.
+          </p>
+          <div className="mt-4">
+            <NotificationForm webhookUrl={webhookUrl} />
           </div>
         </section>
 

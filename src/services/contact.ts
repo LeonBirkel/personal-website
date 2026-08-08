@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { ContactInquiry } from "@/generated/prisma/client";
 import type { ContactInput } from "@/lib/validation";
+import { notifyInquiryReceived } from "@/services/notifications";
 
 const MAX_INQUIRIES_PER_IP_PER_HOUR = 5;
 const MAX_INQUIRIES_TOTAL_PER_HOUR = 30;
@@ -28,6 +30,8 @@ export async function createInquiry(data: ContactInput, ip: string | null): Prom
     throw new RateLimitError();
   }
   await prisma.contactInquiry.create({ data: { ...data, ip: bucket } });
+  // Runs once the response is sent, so the visitor never waits on Discord.
+  after(() => notifyInquiryReceived(data));
 }
 
 export async function listInquiries(): Promise<ContactInquiry[]> {

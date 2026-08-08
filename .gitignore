@@ -43,3 +43,6 @@ next-env.d.ts
 
 # instance-specific server notes, never published
 /ops/private/
+
+# local Claude Code files (worktrees, launch config)
+/.claude/
