@@ -1,10 +1,16 @@
-import { bibtexFor, getPublicationBySlug } from "@/services/publications";
+import { bibtexFor, getPublicPublicationBySlug, listPublications } from "@/services/publications";
 
 export const revalidate = 300;
 
+/** Prerenders every visible slug, so the revalidate window actually applies. */
+export async function generateStaticParams() {
+  const publications = await listPublications();
+  return publications.map((pub) => ({ slug: pub.slug }));
+}
+
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const pub = await getPublicationBySlug(slug);
+  const pub = await getPublicPublicationBySlug(slug);
   if (!pub) return new Response("Not found", { status: 404 });
 
   return new Response(`${bibtexFor(pub)}\n`, {

@@ -7,6 +7,17 @@ set -e
 
 npx tsx scripts/validate-site-config.ts
 
+# Cloudflare's public test keys (prefix 1x/2x/3x) make siteverify accept any
+# input, so a contact form running on them is unguarded. Loud warning rather
+# than a refusal: the compose production self-test legitimately boots with
+# them, and the form fails closed while the secret is empty.
+case "${TURNSTILE_SECRET_KEY:-}" in
+"")
+  echo "WARNING: TURNSTILE_SECRET_KEY is empty. The contact form will reject every submission until real Turnstile keys are set." ;;
+1x* | 2x* | 3x*)
+  echo "WARNING: TURNSTILE_SECRET_KEY is a Cloudflare TEST key. The contact form is NOT protected. Create real keys at https://dash.cloudflare.com/ (Turnstile)." ;;
+esac
+
 npx prisma migrate deploy
 
 # Creates the admin user and, only once per database, the seedContent from
@@ -48,7 +59,7 @@ warm_isr() {
     /.well-known/security.txt
     /news/feed.xml /news/feed.json /publications.json
     /index.md /publications.md /projects.md /news.md /contact.md
-    /icon /apple-icon /favicon.ico /boot-warmup-404-probe"
+    /icon /apple-icon /favicon.ico /icons/192 /icons/512 /boot-warmup-404-probe"
 
   # First pass regenerates the flushed entries, second pass confirms the
   # freshly generated ones are cached.

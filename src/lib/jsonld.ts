@@ -138,7 +138,14 @@ export function scholarlyArticleNode(pub: Publication): ScholarlyArticle {
       name === config.person.name ? personRef() : ({ "@type": "Person", name } as Person),
     ),
     datePublished: String(pub.year),
-    isPartOf: { "@type": "CreativeWork", name: pub.venue },
+    ...(pub.firstPage ? { pageStart: pub.firstPage } : {}),
+    ...(pub.lastPage ? { pageEnd: pub.lastPage } : {}),
+    isPartOf: {
+      "@type": "CreativeWork",
+      // Truthiness, not nullish: a legacy empty string must never blank the venue.
+      name: pub.conferenceTitle || pub.venue,
+      ...(pub.publisher ? { publisher: { "@type": "Organization", name: pub.publisher } } : {}),
+    },
     ...(pub.abstract ? { abstract: pub.abstract } : {}),
     ...(pub.doi
       ? {

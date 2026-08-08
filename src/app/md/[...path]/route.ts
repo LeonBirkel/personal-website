@@ -6,9 +6,22 @@ import {
   publicationMarkdown,
   publicationsMarkdown,
 } from "@/lib/markdown-pages";
-import { getPublicationBySlug } from "@/services/publications";
+import { getPublicPublicationBySlug, listPublications } from "@/services/publications";
 
 export const revalidate = 300;
+
+/** Prerenders every public twin, so the revalidate window actually applies. */
+export async function generateStaticParams() {
+  const publications = await listPublications();
+  return [
+    { path: ["index"] },
+    { path: ["publications"] },
+    { path: ["projects"] },
+    { path: ["news"] },
+    { path: ["contact"] },
+    ...publications.map((pub) => ({ path: ["publications", pub.slug] })),
+  ];
+}
 
 /** Serves the markdown twin of each public page. Reached via the proxy rewrite of <path>.md. */
 export async function GET(_request: Request, { params }: { params: Promise<{ path: string[] }> }) {
@@ -26,7 +39,7 @@ async function resolveMarkdown(path: string[]): Promise<string | null> {
   if (head === "index" && rest.length === 0) return homeMarkdown();
   if (head === "publications" && rest.length === 0) return publicationsMarkdown();
   if (head === "publications" && rest.length === 1) {
-    const pub = await getPublicationBySlug(rest[0]);
+    const pub = await getPublicPublicationBySlug(rest[0]);
     return pub ? publicationMarkdown(pub) : null;
   }
   if (head === "projects" && rest.length === 0) return projectsMarkdown();

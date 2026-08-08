@@ -82,6 +82,64 @@ export function PublicationForm({
         />
       </AdminField>
       <div className="grid gap-5 sm:grid-cols-2">
+        <AdminField
+          label="Conference title"
+          name="conferenceTitle"
+          error={errors?.conferenceTitle}
+          hint="For the Scholar citation tag (optional)"
+        >
+          <input
+            className={INPUT_CLASSES}
+            id="conferenceTitle"
+            name="conferenceTitle"
+            defaultValue={publication?.conferenceTitle ?? ""}
+          />
+        </AdminField>
+        <AdminField
+          label="Publisher"
+          name="publisher"
+          error={errors?.publisher}
+          hint="e.g. Springer (optional)"
+        >
+          <input
+            className={INPUT_CLASSES}
+            id="publisher"
+            name="publisher"
+            defaultValue={publication?.publisher ?? ""}
+          />
+        </AdminField>
+        <AdminField
+          label="First page"
+          name="firstPage"
+          error={errors?.firstPage}
+          hint="Optional, set both or neither"
+        >
+          <input
+            className={INPUT_CLASSES}
+            id="firstPage"
+            name="firstPage"
+            type="number"
+            min={1}
+            defaultValue={publication?.firstPage ?? ""}
+          />
+        </AdminField>
+        <AdminField
+          label="Last page"
+          name="lastPage"
+          error={errors?.lastPage}
+          hint="Optional, set both or neither"
+        >
+          <input
+            className={INPUT_CLASSES}
+            id="lastPage"
+            name="lastPage"
+            type="number"
+            min={1}
+            defaultValue={publication?.lastPage ?? ""}
+          />
+        </AdminField>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
         <AdminField label="DOI" name="doi" error={errors?.doi} hint="e.g. 10.1007/xxx (optional)">
           <input
             className={INPUT_CLASSES}

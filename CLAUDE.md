@@ -62,8 +62,10 @@ When trade-offs arise, prioritize in this order:
 - JSON-LD is typed with `schema-dts` and generated in `src/lib/jsonld.ts`
   from the runtime config — no hand-written blocks.
 - Publication pages additionally carry Google Scholar (Highwire) meta tags:
-  `citation_title`, `citation_author`, `citation_publication_date`,
-  `citation_doi`, `citation_pdf_url`.
+  `citation_title`, `citation_author` (one per author, in order),
+  `citation_publication_date`, `citation_doi`, `citation_pdf_url`, plus
+  `citation_conference_title`, `citation_publisher` and
+  `citation_firstpage`/`citation_lastpage` when the structured fields are set.
 - Next.js Metadata API: title template `%s | <person.name>`, unique
   descriptions, canonical URLs on the instance origin (https, non-www),
   OpenGraph + Twitter cards. Metadata that depends on the config must use

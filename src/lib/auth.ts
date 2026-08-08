@@ -22,5 +22,16 @@ export const auth = betterAuth({
       role: { type: "string", defaultValue: "admin", input: false },
     },
   },
+  advanced: {
+    ipAddress: {
+      // Mirrors src/lib/request-ip.ts. Behind Cloudflare (the documented
+      // deployment) cf-connecting-ip is authoritative because the edge
+      // overwrites it. Without Cloudflare no client-settable header can be
+      // trusted, this list included, so instance owners fronting the app
+      // with their own proxy should also set
+      // advanced.ipAddress.trustedProxies for it.
+      ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for", "x-real-ip"],
+    },
+  },
   plugins: [nextCookies()],
 });

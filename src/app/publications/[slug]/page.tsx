@@ -6,7 +6,7 @@ import { breadcrumbNode, graph, scholarlyArticleNode } from "@/lib/jsonld";
 import { buildSharedOpenGraph, pageAlternates } from "@/lib/metadata";
 import { renderMarkdown } from "@/lib/markdown";
 import { absoluteUrl } from "@/lib/site";
-import { bibtexFor, getPublicationBySlug, listPublications } from "@/services/publications";
+import { bibtexFor, getPublicPublicationBySlug, listPublications } from "@/services/publications";
 
 export const revalidate = 300;
 
@@ -19,7 +19,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const pub = await getPublicationBySlug(slug);
+  const pub = await getPublicPublicationBySlug(slug);
   if (!pub) return {};
 
   // Google Scholar (Highwire) tags alongside standard metadata.
@@ -28,6 +28,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     citation_author: [...pub.authors],
     citation_publication_date: String(pub.year),
   };
+  if (pub.conferenceTitle) citation.citation_conference_title = pub.conferenceTitle;
+  if (pub.publisher) citation.citation_publisher = pub.publisher;
+  if (pub.firstPage) citation.citation_firstpage = String(pub.firstPage);
+  if (pub.lastPage) citation.citation_lastpage = String(pub.lastPage);
   if (pub.doi) citation.citation_doi = pub.doi;
   if (pub.pdfUrl) citation.citation_pdf_url = absoluteUrl(pub.pdfUrl);
 
@@ -42,7 +46,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function PublicationPage({ params }: Params) {
   const { slug } = await params;
-  const pub = await getPublicationBySlug(slug);
+  const pub = await getPublicPublicationBySlug(slug);
   if (!pub) notFound();
 
   const meta: { label: string; value: React.ReactNode }[] = [
@@ -50,6 +54,10 @@ export default async function PublicationPage({ params }: Params) {
     { label: "Venue", value: pub.venue },
     { label: "Year", value: String(pub.year) },
   ];
+  if (pub.publisher) meta.push({ label: "Publisher", value: pub.publisher });
+  if (pub.firstPage && pub.lastPage) {
+    meta.push({ label: "Pages", value: `${pub.firstPage}–${pub.lastPage}` });
+  }
   if (pub.doi) {
     meta.push({
       label: "DOI",

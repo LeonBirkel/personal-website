@@ -27,6 +27,15 @@ function embedColor(): number {
   return parseInt(getSiteConfig().theme.accent.light.slice(1), 16);
 }
 
+/**
+ * Discord renders markdown inside embeds, including masked [label](url)
+ * links, so visitor text could disguise a hostile URL as a trusted one.
+ * Escaping the control characters makes every submission render literally.
+ */
+function escapeDiscordMarkdown(text: string): string {
+  return text.replace(/[\\*_~`|[\]()>#]/g, "\\$&");
+}
+
 /** Returns null on success, otherwise a short failure reason. Never throws. */
 async function postEmbed(webhookUrl: string, embed: DiscordEmbed): Promise<string | null> {
   try {
@@ -46,23 +55,26 @@ async function postEmbed(webhookUrl: string, embed: DiscordEmbed): Promise<strin
  * Post a new inquiry to the configured Discord webhook. Failures are only
  * logged: the inquiry is already stored, and a Discord outage must never
  * surface as an error to the visitor. User text goes into an embed, which
- * cannot ping roles or @everyone.
+ * cannot ping roles or @everyone, and is markdown-escaped so it renders
+ * literally.
  */
 export async function notifyInquiryReceived(inquiry: ContactInput): Promise<void> {
   const webhookUrl = await getSetting(DISCORD_WEBHOOK_KEY);
   if (!webhookUrl) return;
 
+  const escaped = escapeDiscordMarkdown(inquiry.message);
   const message =
-    inquiry.message.length > DESCRIPTION_LIMIT
-      ? `${inquiry.message.slice(0, DESCRIPTION_LIMIT - 1)}…`
-      : inquiry.message;
+    escaped.length > DESCRIPTION_LIMIT ? `${escaped.slice(0, DESCRIPTION_LIMIT - 1)}…` : escaped;
   const failure = await postEmbed(webhookUrl, {
     title: "New contact inquiry",
     url: `${getSiteUrl()}/admin/inquiries`,
     color: embedColor(),
     fields: [
-      { name: "From", value: `${inquiry.name} <${inquiry.email}>` },
-      { name: "Subject", value: inquiry.subject },
+      {
+        name: "From",
+        value: `${escapeDiscordMarkdown(inquiry.name)} <${escapeDiscordMarkdown(inquiry.email)}>`,
+      },
+      { name: "Subject", value: escapeDiscordMarkdown(inquiry.subject) },
     ],
     description: message,
     timestamp: new Date().toISOString(),

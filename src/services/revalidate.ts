@@ -64,6 +64,8 @@ export async function revalidateEverything(): Promise<void> {
     "/icon",
     "/apple-icon",
     "/favicon.ico",
+    "/icons/192",
+    "/icons/512",
   ]) {
     revalidatePath(path);
   }

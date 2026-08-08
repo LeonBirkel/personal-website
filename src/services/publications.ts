@@ -4,7 +4,21 @@ import type { PublicationInput } from "@/lib/validation";
 import { afterContentMutation } from "@/services/revalidate";
 
 /** Validated input with optional fields resolved to explicit null (clears values on update). */
-export type PublicationData = Omit<PublicationInput, "doi" | "pdfUrl" | "abstract" | "bibtex"> & {
+export type PublicationData = Omit<
+  PublicationInput,
+  | "conferenceTitle"
+  | "publisher"
+  | "firstPage"
+  | "lastPage"
+  | "doi"
+  | "pdfUrl"
+  | "abstract"
+  | "bibtex"
+> & {
+  conferenceTitle?: string | null;
+  publisher?: string | null;
+  firstPage?: number | null;
+  lastPage?: number | null;
   doi?: string | null;
   pdfUrl?: string | null;
   abstract?: string | null;
@@ -31,8 +45,13 @@ export async function listFeaturedPublications(): Promise<Publication[]> {
   });
 }
 
-export async function getPublicationBySlug(slug: string): Promise<Publication | null> {
-  return prisma.publication.findUnique({ where: { slug } });
+/**
+ * Public detail lookup. Filters on `active` like every list surface, so
+ * unchecking "Active" hides a paper from its detail page, BibTeX and markdown
+ * twin as well, not only from the lists. Admin lookups go by id.
+ */
+export async function getPublicPublicationBySlug(slug: string): Promise<Publication | null> {
+  return prisma.publication.findFirst({ where: { slug, active: true } });
 }
 
 export async function getPublicationById(id: string): Promise<Publication | null> {
@@ -71,6 +90,9 @@ export function bibtexFor(pub: Publication): string {
     `  booktitle = {${pub.venue}},`,
     `  year      = {${pub.year}},`,
   ];
+  if (pub.firstPage && pub.lastPage)
+    lines.push(`  pages     = {${pub.firstPage}--${pub.lastPage}},`);
+  if (pub.publisher) lines.push(`  publisher = {${pub.publisher}},`);
   if (pub.doi) lines.push(`  doi       = {${pub.doi}},`);
   lines.push("}");
   return lines.join("\n");

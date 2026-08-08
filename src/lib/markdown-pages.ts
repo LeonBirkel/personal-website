@@ -91,6 +91,8 @@ export async function publicationMarkdown(pub: Publication): Promise<string> {
     `- Venue: ${pub.venue}`,
     `- Year: ${pub.year}`,
   ];
+  if (pub.publisher) lines.push(`- Publisher: ${pub.publisher}`);
+  if (pub.firstPage && pub.lastPage) lines.push(`- Pages: ${pub.firstPage}–${pub.lastPage}`);
   if (pub.doi) lines.push(`- DOI: [${pub.doi}](https://doi.org/${pub.doi})`);
   if (pub.pdfUrl) lines.push(`- PDF: ${absoluteUrl(pub.pdfUrl)}`);
   lines.push(`- BibTeX: ${absoluteUrl(`/publications/${pub.slug}.bib`)}`);

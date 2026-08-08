@@ -22,6 +22,34 @@ export const publicationSchema = z.object({
   authors: z.array(z.string().trim().min(1).max(120)).min(1).max(30),
   venue: z.string().trim().min(1).max(300),
   year: z.coerce.number().int().min(1900).max(2100),
+  conferenceTitle: z
+    .string()
+    .trim()
+    .min(1)
+    .max(300)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  publisher: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  firstPage: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(99999)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  lastPage: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(99999)
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   doi: z
     .string()
     .trim()
@@ -48,6 +76,27 @@ export const publicationSchema = z.object({
   featured: z.boolean(),
 });
 export type PublicationInput = z.infer<typeof publicationSchema>;
+
+/**
+ * Page-range issues that a plain object schema cannot express without
+ * breaking `.shape` reuse. Applied by the admin action and the seed schema.
+ */
+export function pageRangeIssues(input: {
+  firstPage?: number;
+  lastPage?: number;
+}): Partial<Record<"firstPage" | "lastPage", string>> {
+  const { firstPage, lastPage } = input;
+  if (firstPage !== undefined && lastPage === undefined) {
+    return { lastPage: "set both pages or neither" };
+  }
+  if (firstPage === undefined && lastPage !== undefined) {
+    return { firstPage: "set both pages or neither" };
+  }
+  if (firstPage !== undefined && lastPage !== undefined && firstPage > lastPage) {
+    return { lastPage: "must not be smaller than the first page" };
+  }
+  return {};
+}
 
 export const projectLinkSchema = z.object({
   label: z.string().trim().min(1).max(60),

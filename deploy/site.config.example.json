@@ -122,6 +122,10 @@
         "authors": ["Ada Example", "Sam Sample"],
         "venue": "Example Conference on Distributed Systems (ECDS 2025)",
         "year": 2025,
+        "conferenceTitle": "Example Conference on Distributed Systems (ECDS 2025)",
+        "publisher": "Example Press",
+        "firstPage": 101,
+        "lastPage": 118,
         "abstract": "This is placeholder abstract text for the example configuration. Replace the whole seedContent section with your own publications, projects and news before launching your site.",
         "bibtex": "@inproceedings{example2025consensus,\n  author    = {Example, Ada and Sample, Sam},\n  title     = {Consensus Under Partial Failure: An Example Study},\n  booktitle = {Example Conference on Distributed Systems (ECDS 2025)},\n  year      = {2025},\n}"
       }

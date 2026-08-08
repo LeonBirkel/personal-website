@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { newsSchema, projectSchema, publicationSchema } from "@/lib/validation";
+import { newsSchema, pageRangeIssues, projectSchema, publicationSchema } from "@/lib/validation";
 
 /**
  * Schema for site.config.json, the file that makes the framework's person
@@ -50,11 +50,17 @@ const pendingSameAsSchema = z.strictObject({
 });
 
 /** Seed variants of the shared content schemas: strict, with sensible defaults. */
-const seedPublicationSchema = z.strictObject({
-  ...publicationSchema.shape,
-  active: z.boolean().default(true),
-  featured: z.boolean().default(true),
-});
+const seedPublicationSchema = z
+  .strictObject({
+    ...publicationSchema.shape,
+    active: z.boolean().default(true),
+    featured: z.boolean().default(true),
+  })
+  .superRefine((pub, ctx) => {
+    for (const [field, message] of Object.entries(pageRangeIssues(pub))) {
+      ctx.addIssue({ code: "custom", message, path: [field] });
+    }
+  });
 
 const seedProjectSchema = z.strictObject({
   ...projectSchema.shape,
