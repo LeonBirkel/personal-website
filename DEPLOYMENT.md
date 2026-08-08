@@ -52,8 +52,11 @@ Fill in `site.config.json` (who the site presents) and `.env` (secrets and
 domain). Generate secrets with:
 
 ```bash
-openssl rand -base64 32
+openssl rand -hex 32
 ```
+
+The database password is spliced into a connection URL, so keep it to
+URL-safe characters. The generator above is safe.
 
 `SITE_URL` and `BETTER_AUTH_URL` must both be your public origin, for example
 `https://your-domain.example`.
@@ -108,10 +111,12 @@ Recommended Cloudflare settings:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' https://your-domain/api/health
-SITE_CONFIG_PATH=site.config.json node scripts/smoke-structured-data.mjs https://your-domain
+SITE_CONFIG_PATH=/path/to/mysite/site.config.json node scripts/smoke-structured-data.mjs https://your-domain
 ```
 
-The smoke test needs the repo checked out and asserts the JSON-LD parses,
+The smoke test needs the repo checked out. `SITE_CONFIG_PATH` must point at
+the config file you filled in during setup, not at the reference config
+committed in this repository. It asserts the JSON-LD parses,
 your `#person` entity is present, publication pages carry Highwire citation
 tags, and the `.bib` and `.md` twins serve. Then by hand: the site renders
 with JavaScript disabled, `/admin` redirects when signed out, and the contact
@@ -172,13 +177,19 @@ whose notes flag a migration, needs a database restore first.
 The two things worth saving are the database and the uploads volume:
 
 ```bash
-docker compose exec db pg_dump -U postgres -Fc personal_website > backup-$(date +%F).dump
+docker compose exec -T db pg_dump -U postgres -Fc personal_website > backup-$(date +%F).dump
 docker run --rm -v mysite_uploads:/u -v "$PWD":/out alpine tar czf /out/uploads-$(date +%F).tgz -C /u .
 ```
 
 Put those two lines in a cron job and copy the results somewhere off the
-host. Restore with `pg_restore -d personal_website --clean backup.dump` and
-by untarring into the volume.
+host. The database has no published port, so restore through the container
+as well:
+
+```bash
+docker compose exec -T db pg_restore -U postgres --clean --if-exists -d personal_website < backup-2026-01-01.dump
+```
+
+Restore uploads by untarring the archive back into the volume.
 
 ## Troubleshooting
 

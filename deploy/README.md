@@ -16,9 +16,8 @@ Then:
 
 1. Edit `site.config.json`. It is who the site presents: name, role,
    affiliation, bio, links, colors, and your initial publications, projects
-   and news. The schema documents every field. Editors autocomplete it if you
-   keep the `$schema` line and download
-   [site.config.schema.json](../site.config.schema.json) next to it.
+   and news. The schema documents every field. Keep the `$schema` line and
+   most editors autocomplete the file on their own.
 2. Edit `.env`. Secrets, your domain, and the admin login.
 3. Start it:
 

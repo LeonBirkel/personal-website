@@ -3,7 +3,7 @@
 # replaces the build-time example content after boot.
 # `next build` prerenders DB-backed pages, so the builder stage runs a
 # throwaway Postgres — the image builds self-contained on any arch. Pages are
-# built against an empty DB and the bundled example config; ISR
+# built against an empty DB and the bundled example config. ISR
 # (revalidate=300) and revalidatePath refresh them at runtime.
 
 FROM node:24-alpine AS deps

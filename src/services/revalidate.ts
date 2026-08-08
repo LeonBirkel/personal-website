@@ -44,6 +44,9 @@ export async function afterContentMutation(paths: string[]): Promise<void> {
  * IndexNow ping: booting is not a content change.
  */
 export async function revalidateEverything(): Promise<void> {
+  // The layout-level flush covers every page under the root layout, including
+  // routes no enumeration would list, such as the prerendered 404 page.
+  revalidatePath("/", "layout");
   const publications = await listPublications();
   revalidateWithDerived([
     "/",
@@ -60,6 +63,7 @@ export async function revalidateEverything(): Promise<void> {
     "/manifest.webmanifest",
     "/icon",
     "/apple-icon",
+    "/favicon.ico",
   ]) {
     revalidatePath(path);
   }

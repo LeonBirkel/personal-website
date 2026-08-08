@@ -4,8 +4,12 @@ import { iconImage } from "@/lib/icon-image";
 /**
  * Google shows favicons in results, so a real /favicon.ico must exist.
  * Rendered once per process from the runtime config and memoized: the
- * config cannot change without a restart.
+ * config cannot change without a restart. The revalidate window keeps the
+ * route regenerable, so the build-time example icon never outlives the
+ * boot flush.
  */
+export const revalidate = 300;
+
 let cached: Buffer | null = null;
 
 export async function GET() {

@@ -121,7 +121,7 @@ if (publicationsJson) {
       },
     ]);
     const bib = await fetchText(`/publications/${slug}.bib`, "application/x-bibtex");
-    if (bib?.includes("@inproceedings")) ok(`/publications/${slug}.bib serves BibTeX`);
+    if (bib && /@[a-zA-Z]+\s*\{/.test(bib)) ok(`/publications/${slug}.bib serves BibTeX`);
     else fail(`/publications/${slug}.bib missing BibTeX`);
   } else {
     ok("no publications to spot-check (empty DB)");

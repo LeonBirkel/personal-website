@@ -117,7 +117,7 @@ jobs:
           tags: |
             type=semver,pattern=v{{version}}
             type=semver,pattern=v{{major}},enable=${{ !startsWith(github.ref_name, 'v0.') }}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
 
       - name: Create multi-arch manifest
         # One imagetools invocation applies every tag to the same manifest

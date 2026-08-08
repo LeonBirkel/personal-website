@@ -12,5 +12,5 @@ src/generated
 .claude
 ops
 # The image must carry zero instance data. The build renders against
-# deploy/site.config.example.json; real configs are mounted at runtime.
+# deploy/site.config.example.json. Real configs are mounted at runtime.
 site.config.json

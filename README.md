@@ -96,7 +96,7 @@ against different data.
 | `npm run check`                                                  | typecheck and lint. **Run before every commit**                              |
 | `npm run build` / `start`                                        | production build / serve                                                     |
 | `npm run migrate:dev` / `migrate:deploy` / `studio` / `generate` | Prisma workflows                                                             |
-| `npm run seed`                                                   | idempotent seed (re-running refreshes seeded content)                        |
+| `npm run seed`                                                   | seed from the config (re-runs refresh prose, never curation flags)           |
 | `npm run db:reseed`                                              | migrate, wipe **all content rows**, re-seed (dev only; keeps the admin user) |
 | `npm run schema` / `schema:check`                                | regenerate / verify `site.config.schema.json`                                |
 | `npm run config:validate`                                        | validate a site config against the schema                                    |
@@ -127,7 +127,7 @@ cross-origin logins ("Invalid origin").
 ## Releasing (maintainers and forks)
 
 ```bash
-npm version minor              # bumps package.json, commits, tags
+npm version minor              # or patch / major. Bumps, commits and tags
 git push origin main --follow-tags
 ```
 
