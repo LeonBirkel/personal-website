@@ -32,6 +32,56 @@
       ],
       "additionalProperties": false
     },
+    "security": {
+      "description": "Optional inputs for /.well-known/security.txt (RFC 9116). The file is served with sensible defaults even when this section is absent.",
+      "type": "object",
+      "properties": {
+        "contact": {
+          "description": "Ordered Contact lines for /.well-known/security.txt, most preferred first. Defaults to the site's own contact page, which keeps the address out of a file crawlers read.",
+          "minItems": 1,
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "pattern": "^(https:\\/\\/|mailto:|tel:\\+)\\S+$"
+          }
+        },
+        "encryption": {
+          "description": "URL of a public key a reporter can encrypt to.",
+          "type": "string",
+          "maxLength": 300,
+          "format": "uri"
+        },
+        "acknowledgments": {
+          "description": "URL of a page thanking reporters.",
+          "type": "string",
+          "maxLength": 300,
+          "format": "uri"
+        },
+        "policy": {
+          "description": "URL of the vulnerability disclosure policy, e.g. the repository SECURITY.md.",
+          "type": "string",
+          "maxLength": 300,
+          "format": "uri"
+        },
+        "preferredLanguages": {
+          "default": [
+            "en"
+          ],
+          "description": "Languages a report may be written in, as RFC 9116 Preferred-Languages.",
+          "minItems": 1,
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "person": {
       "type": "object",
       "properties": {

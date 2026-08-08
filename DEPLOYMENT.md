@@ -99,6 +99,14 @@ Recommended Cloudflare settings:
 - SSL/TLS mode: **Full (Strict)**
 - Turnstile: a widget covering your domain, Managed mode. Put its keys in
   `.env` (`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`).
+- HSTS: the app already sends
+  `Strict-Transport-Security: max-age=31536000; includeSubDomains` in
+  production, so Cloudflare's HSTS toggle is optional. Turning it on as well
+  is fine. Keep both values identical if you do, and note that
+  `includeSubDomains` forces HTTPS on every subdomain of the apex. Drop that
+  part in `next.config.ts` if you run anything on plain HTTP under the same
+  domain. Neither place enables `preload`, which is deliberate: preloading is
+  slow to reverse and is your call, not the framework's.
 - DNS: if the domain sends no email, add a null `MX`, `v=spf1 -all` and a
   `p=reject` DMARC record so it cannot be spoofed.
 - **Allow verified AI bots. This one is critical.** Bot Fight Mode off, AI

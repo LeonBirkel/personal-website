@@ -5,6 +5,11 @@
     "canonicalOrigin": "https://ada.example.org",
     "orgIdFragment": "exampleuni"
   },
+  "security": {
+    "contact": ["https://ada.example.org/contact"],
+    "policy": "https://github.com/example/personal-website/blob/main/SECURITY.md",
+    "preferredLanguages": ["en"]
+  },
   "person": {
     "name": "Ada Example",
     "givenName": "Ada",
@@ -12,7 +17,9 @@
     "jobTitle": "Doctoral Candidate",
     "description": "Ada Example is a doctoral candidate at the Chair of Example Systems at Example University. She researches distributed systems reliability, covering both consensus protocols and failure detection.",
     "email": "ada@example.org",
-    "location": { "city": "Exampleville" },
+    "location": {
+      "city": "Exampleville"
+    },
     "researchTopics": [
       "distributed systems reliability",
       "consensus protocols",
@@ -25,7 +32,12 @@
       "https://orcid.org/0000-0000-0000-0000",
       "https://github.com/ada-example"
     ],
-    "pendingSameAs": [{ "url": "https://www.example-university.example/staff/ada/", "live": false }]
+    "pendingSameAs": [
+      {
+        "url": "https://www.example-university.example/staff/ada/",
+        "live": false
+      }
+    ]
   },
   "affiliation": {
     "name": "Example University",
@@ -65,9 +77,19 @@
     ]
   },
   "links": [
-    { "label": "GitHub", "url": "https://github.com/ada-example", "showOnContact": true },
-    { "label": "Scholar", "url": "https://scholar.google.com/citations?user=EXAMPLE0000" },
-    { "label": "ORCID", "url": "https://orcid.org/0000-0000-0000-0000" }
+    {
+      "label": "GitHub",
+      "url": "https://github.com/ada-example",
+      "showOnContact": true
+    },
+    {
+      "label": "Scholar",
+      "url": "https://scholar.google.com/citations?user=EXAMPLE0000"
+    },
+    {
+      "label": "ORCID",
+      "url": "https://orcid.org/0000-0000-0000-0000"
+    }
   ],
   "home": {
     "eyebrow": "Exampleville · Distributed Systems",
@@ -83,8 +105,14 @@
   },
   "pageDescriptions": {},
   "theme": {
-    "accent": { "light": "#c43d00", "dark": "#ff6b2c" },
-    "accentHover": { "light": "#a33200", "dark": "#ff8a55" }
+    "accent": {
+      "light": "#c43d00",
+      "dark": "#ff6b2c"
+    },
+    "accentHover": {
+      "light": "#a33200",
+      "dark": "#ff8a55"
+    }
   },
   "seedContent": {
     "publications": [
@@ -104,7 +132,12 @@
         "title": "Fault-injection testbed for consensus protocols",
         "summary": "A reproducible testbed that injects network faults into consensus clusters and records how they recover.",
         "description": "Placeholder project description for the example configuration. Long-form fields are markdown, so **bold**, links and lists all work.\n\nReplace this with your own projects.",
-        "links": [{ "label": "Source", "url": "https://github.com/ada-example/testbed" }],
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://github.com/ada-example/testbed"
+          }
+        ],
         "techTags": ["Distributed systems", "Fault injection"],
         "order": 1
       }

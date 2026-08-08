@@ -102,6 +102,48 @@ export const siteConfigSchema = z.strictObject({
       ),
   }),
 
+  security: z
+    .strictObject({
+      contact: z
+        .array(
+          z
+            .string()
+            .min(1)
+            .max(300)
+            .regex(/^(https:\/\/|mailto:|tel:\+)\S+$/, "must be an https://, mailto: or tel:+ URI"),
+        )
+        .min(1)
+        .max(5)
+        .optional()
+        .describe(
+          "Ordered Contact lines for /.well-known/security.txt, most preferred " +
+            "first. Defaults to the site's own contact page, which keeps the " +
+            "address out of a file crawlers read.",
+        ),
+      encryption: z
+        .url()
+        .max(300)
+        .optional()
+        .describe("URL of a public key a reporter can encrypt to."),
+      acknowledgments: z.url().max(300).optional().describe("URL of a page thanking reporters."),
+      policy: z
+        .url()
+        .max(300)
+        .optional()
+        .describe("URL of the vulnerability disclosure policy, e.g. the repository SECURITY.md."),
+      preferredLanguages: z
+        .array(z.string().regex(/^[a-z]{2}$/, "two-letter language codes"))
+        .min(1)
+        .max(5)
+        .default(["en"])
+        .describe("Languages a report may be written in, as RFC 9116 Preferred-Languages."),
+    })
+    .optional()
+    .describe(
+      "Optional inputs for /.well-known/security.txt (RFC 9116). The file is " +
+        "served with sensible defaults even when this section is absent.",
+    ),
+
   person: z.strictObject({
     name: z
       .string()

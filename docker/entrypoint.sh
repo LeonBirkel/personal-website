@@ -45,6 +45,7 @@ warm_isr() {
   # is otherwise never requested by a warm-up.
   paths="/ /publications /projects /news /contact
     /robots.txt /sitemap.xml /manifest.webmanifest /llms.txt /llms-full.txt
+    /.well-known/security.txt
     /news/feed.xml /news/feed.json /publications.json
     /index.md /publications.md /projects.md /news.md /contact.md
     /icon /apple-icon /favicon.ico /boot-warmup-404-probe"
