@@ -24,6 +24,7 @@ export async function GET() {
   const contacts = security?.contact ?? [absoluteUrl("/contact")];
   const languages = security?.preferredLanguages ?? ["en"];
 
+  const eggComment = getSiteConfig().easterEggs?.securityTxtComment;
   const lines = [
     ...contacts.map((contact) => `Contact: ${contact}`),
     `Expires: ${expiresAt()}`,
@@ -32,6 +33,8 @@ export async function GET() {
     ...(security?.encryption ? [`Encryption: ${security.encryption}`] : []),
     ...(security?.policy ? [`Policy: ${security.policy}`] : []),
     ...(security?.acknowledgments ? [`Acknowledgments: ${security.acknowledgments}`] : []),
+    // RFC 9116 allows comment lines. Scanners print them verbatim.
+    ...(eggComment ? [`# ${eggComment}`] : []),
   ];
 
   return new Response(`${lines.join("\n")}\n`, {

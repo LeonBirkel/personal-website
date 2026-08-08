@@ -150,6 +150,72 @@ export const siteConfigSchema = z.strictObject({
         "served with sensible defaults even when this section is absent.",
     ),
 
+  easterEggs: z
+    .strictObject({
+      securityTxtComment: z
+        .string()
+        .min(1)
+        .max(200)
+        .optional()
+        .describe(
+          "A single '#' comment line appended to /.well-known/security.txt. The " +
+            "first breadcrumb, seen by a researcher who opens that file.",
+        ),
+      trap: z
+        .strictObject({
+          message: z
+            .string()
+            .min(1)
+            .max(1000)
+            .describe("Markdown shown on the /side-channel page for whoever reads robots.txt."),
+        })
+        .optional()
+        .describe(
+          "Enables the /side-channel page. It is Disallow-listed in robots.txt and " +
+            "carries a noindex, so it costs no crawl budget and only rewards a reader " +
+            "of the robots file.",
+        ),
+      notFoundHeader: z
+        .strictObject({
+          name: z.string().regex(/^X-[A-Za-z0-9-]{1,40}$/, "an X-prefixed header name"),
+          value: z.string().min(1).max(200),
+        })
+        .optional()
+        .describe(
+          "A response header served only on unrecognized (404-ish) paths, never on " +
+            "the home page, so it stays off a headers scan of the root and rewards path " +
+            "fuzzing instead.",
+        ),
+      bibComment: z
+        .string()
+        .min(1)
+        .max(200)
+        .optional()
+        .describe(
+          "A @comment{} line prepended to every /publications/<slug>.bib download. " +
+            "Valid BibTeX, ignored by parsers, seen only by whoever reads the file.",
+        ),
+      cipherStrip: z
+        .strictObject({
+          plaintext: z
+            .string()
+            .min(1)
+            .max(60)
+            .regex(/^[A-Za-z0-9 .,!?:'-]+$/, "letters, digits and simple punctuation only"),
+          shift: z.number().int().min(1).max(25).default(7),
+        })
+        .optional()
+        .describe(
+          "A vertical Caesar-ciphered ornament on wide screens, echoing the footer " +
+            "hex. It renders the ciphertext of plaintext shifted by shift.",
+        ),
+    })
+    .optional()
+    .describe(
+      "Optional easter eggs, absent on most instances so no owner inherits another's " +
+        "jokes. None of them cost crawl budget or weaken the security headers.",
+    ),
+
   person: z.strictObject({
     name: z
       .string()

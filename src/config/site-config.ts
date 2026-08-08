@@ -85,3 +85,20 @@ export function getHexName(): string {
     .map((char) => char.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0"))
     .join(" ");
 }
+
+/**
+ * The vertical ornament, the footer hex's sibling: the configured plaintext
+ * Caesar-shifted, uppercased. Null when no cipher strip is configured, so most
+ * instances render nothing. Only A to Z rotate, spacing and punctuation stay.
+ */
+export function getCipherStrip(): string | null {
+  const strip = getSiteConfig().easterEggs?.cipherStrip;
+  if (!strip) return null;
+  return [...strip.plaintext.toUpperCase()]
+    .map((char) => {
+      const code = char.charCodeAt(0);
+      if (code < 65 || code > 90) return char;
+      return String.fromCharCode(((code - 65 + strip.shift) % 26) + 65);
+    })
+    .join("");
+}

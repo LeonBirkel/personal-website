@@ -38,7 +38,53 @@ export default function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(target, request.url));
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  maybeStampNotFoundEgg(response, pathname);
+  return response;
+}
+
+/** Real routes this middleware still hands to Next. Anything else 404s. */
+const KNOWN_ROUTES = new Set([
+  "/",
+  "/publications",
+  "/projects",
+  "/news",
+  "/contact",
+  "/side-channel",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.webmanifest",
+  "/llms.txt",
+  "/llms-full.txt",
+  "/favicon.ico",
+  "/icon",
+  "/apple-icon",
+  "/news/feed.xml",
+  "/news/feed.json",
+  "/publications.json",
+  "/.well-known/security.txt",
+]);
+
+/**
+ * Third easter egg: a response header served only on paths that do not resolve,
+ * so it rewards path fuzzing and never appears on the home page or any real
+ * route. The name and value come from the config, forwarded by the entrypoint
+ * as env because middleware cannot read the config file. Admin, IndexNow and
+ * the twin rewrites return earlier, so this only sees pages and unknown paths.
+ * A real publication slug lives under /publications/, which is excluded.
+ */
+function maybeStampNotFoundEgg(response: NextResponse, pathname: string): void {
+  const name = process.env.EGG_NOT_FOUND_HEADER_NAME;
+  const value = process.env.EGG_NOT_FOUND_HEADER_VALUE;
+  if (!name || !value) return;
+  if (KNOWN_ROUTES.has(pathname) || pathname.startsWith("/publications/")) return;
+  // A joke must never break routing. A stray control character in the value
+  // would throw from headers.set, so a bad config just drops the egg.
+  try {
+    response.headers.set(name, value);
+  } catch {
+    // ignore an invalid configured header
+  }
 }
 
 export const config = {

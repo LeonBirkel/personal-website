@@ -18,6 +18,14 @@ case "${TURNSTILE_SECRET_KEY:-}" in
   echo "WARNING: TURNSTILE_SECRET_KEY is a Cloudflare TEST key. The contact form is NOT protected. Create real keys at https://dash.cloudflare.com/ (Turnstile)." ;;
 esac
 
+# Forward the optional 404 easter-egg header from the config to the app as env,
+# because the proxy (middleware) cannot read the config file at request time.
+# Absent config leaves both empty and the egg stays off.
+CFG="${SITE_CONFIG_PATH:-./site.config.json}"
+EGG_NOT_FOUND_HEADER_NAME="$(CFG="$CFG" node -e "try{const c=JSON.parse(require('fs').readFileSync(process.env.CFG,'utf8'));process.stdout.write((c.easterEggs&&c.easterEggs.notFoundHeader&&c.easterEggs.notFoundHeader.name)||'')}catch(e){}")"
+EGG_NOT_FOUND_HEADER_VALUE="$(CFG="$CFG" node -e "try{const c=JSON.parse(require('fs').readFileSync(process.env.CFG,'utf8'));process.stdout.write((c.easterEggs&&c.easterEggs.notFoundHeader&&c.easterEggs.notFoundHeader.value)||'')}catch(e){}")"
+export EGG_NOT_FOUND_HEADER_NAME EGG_NOT_FOUND_HEADER_VALUE
+
 npx prisma migrate deploy
 
 # Creates the admin user and, only once per database, the seedContent from
