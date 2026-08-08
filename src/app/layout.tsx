@@ -8,7 +8,7 @@ import { getSiteConfig, getSiteUrl } from "@/config/site-config";
 import { frameworkTheme } from "@/config/theme";
 import { baseGraphNodes, graph } from "@/lib/jsonld";
 import { buildSharedOpenGraph, feedAlternateTypes } from "@/lib/metadata";
-import { portraitExists } from "@/lib/portrait";
+import { resolveOgImage } from "@/lib/portrait";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "max-image-preview": "large",
     },
     openGraph: { ...buildSharedOpenGraph(), type: "website" },
-    twitter: { card: portraitExists() ? "summary_large_image" : "summary" },
+    twitter: { card: resolveOgImage() ? "summary_large_image" : "summary" },
     alternates: { types: feedAlternateTypes },
   };
 }

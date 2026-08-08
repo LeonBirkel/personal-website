@@ -32,10 +32,15 @@ When trade-offs arise, prioritize in this order:
   JSON-LD, OG tags, alt text, publication author lists.
 - `site.config.schema.json` is generated (`npm run schema`) and CI fails if
   it drifts. Editors autocomplete configs via its `$schema` pointer.
-- Portrait: one high-resolution photo, by convention uploaded through the
-  admin portal to `/uploads/portrait.jpg`. It is both the JSON-LD `image`
-  **and** the basis of the `og:image`. Never use a logo or icon as
-  `og:image`. Both tags are omitted automatically while the file is missing.
+- Two images, two jobs, both uploaded through the admin portal. The portrait
+  at `/uploads/portrait.jpg` is the JSON-LD `image`, so it wants a square or
+  portrait crop: consumers show it as a thumbnail. The link preview at
+  `/uploads/og-image.jpg` is the `og:image` and must be **1200×630**, the
+  1.91:1 shape Facebook and LinkedIn render as a full-width card.
+- Never serve the portrait as the `og:image` by choice. It is only a fallback,
+  and platforms that crop to 2:1 take the top and bottom off the head. Never
+  use a logo or icon as `og:image`. Every tag is omitted automatically while
+  its file is missing, so nothing ever points at a 404.
 - Ask before publishing any personal data of the maintainer beyond name,
   role, and public profile links.
 

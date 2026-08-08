@@ -17,9 +17,11 @@ export default async function AdminSettingsPage() {
             Uploads
           </h2>
           <p className="mt-2 max-w-[65ch] text-muted">
-            Upload the portrait as portrait.jpg (served at /uploads/portrait.jpg, which the site
-            references once it exists) or publication PDFs, then reference the returned /uploads/…
-            URL.
+            Two images matter here. Upload the portrait as portrait.jpg, a square or portrait crop,
+            which becomes the JSON-LD image. Upload the link preview as og-image.jpg at 1200×630,
+            which becomes the og:image shown when the site is shared. Without the second one the
+            portrait stands in, and platforms that crop to 2:1 will cut the head. Publication PDFs
+            work the same way: upload, then reference the returned /uploads/… URL.
           </p>
           <div className="mt-4">
             <UploadWidget />

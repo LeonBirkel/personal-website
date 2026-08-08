@@ -37,9 +37,10 @@ export async function POST(request: Request) {
   await mkdir(UPLOADS_DIR, { recursive: true });
   await writeFile(path.join(UPLOADS_DIR, name), Buffer.from(await file.arrayBuffer()));
 
-  // A fresh portrait must show up in JSON-LD image and og:image without
-  // waiting out the ISR window.
-  if (`/uploads/${name}` === getSiteConfig().person.portraitPath) {
+  // A fresh portrait or link-preview image must show up in JSON-LD image and
+  // og:image without waiting out the ISR window.
+  const { portraitPath, ogImagePath } = getSiteConfig().person;
+  if ([portraitPath, ogImagePath].includes(`/uploads/${name}`)) {
     await afterContentMutation(["/"]);
   }
 

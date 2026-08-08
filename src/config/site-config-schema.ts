@@ -138,9 +138,23 @@ export const siteConfigSchema = z.strictObject({
       .max(300)
       .default("/uploads/portrait.jpg")
       .describe(
-        "Path of the portrait photo, JSON-LD image and og:image. The default " +
-          "points at the admin uploads volume: upload portrait.jpg in " +
-          "/admin/settings. Both tags are omitted while the file is missing.",
+        "Path of the portrait photo and the JSON-LD image. The default points " +
+          "at the admin uploads volume: upload portrait.jpg in /admin/settings. " +
+          "The tag is omitted while the file is missing. A square or portrait " +
+          "crop is right here, because consumers show this one as a thumbnail.",
+      ),
+    ogImagePath: z
+      .string()
+      .regex(/^\//, "must start with /")
+      .max(300)
+      .default("/uploads/og-image.jpg")
+      .describe(
+        "Path of the 1200x630 link-preview image (og:image). Upload it as " +
+          "og-image.jpg in /admin/settings. A portrait is the wrong shape for a " +
+          "link preview, because X crops to 2:1 and takes the top and bottom off " +
+          "the head. Falls back to portraitPath while this file is missing. The " +
+          "declared og:image:width and og:image:height assume 1200x630, so keep " +
+          "to that size.",
       ),
     researchTopics: z
       .array(z.string().min(1).max(80))
