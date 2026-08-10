@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useActionState, useEffect, useState } from "react";
+import { HONEYPOT_FIELD, TURNSTILE_ACTION } from "@/lib/contact-fields";
 import { contactSchema } from "@/lib/validation";
 import { submitContactForm, type ContactFormState } from "./actions";
 
@@ -125,9 +126,34 @@ export function ContactForm({ siteKey }: { siteKey: string }) {
         />
       </Field>
 
+      {/* Automation fills every input it finds. This one sits in the layout,
+          so a bot that skips display:none fields still sees it, while sr-only
+          keeps it invisible, aria-hidden keeps it away from screen readers and
+          tabIndex -1 keeps it off the keyboard path. A filled field files the
+          message as spam rather than dropping it, because a stray autofill
+          must never lose real mail. */}
+      <div className="sr-only" aria-hidden="true">
+        <label htmlFor={HONEYPOT_FIELD}>Leave this field empty</label>
+        <input
+          type="text"
+          id={HONEYPOT_FIELD}
+          name={HONEYPOT_FIELD}
+          tabIndex={-1}
+          autoComplete="off"
+          defaultValue=""
+        />
+      </div>
+
       {/* Visible on purpose. An invisible widget that has not issued a token yet
-          fails the submit with no explanation the visitor can act on. */}
-      <div className="cf-turnstile" data-sitekey={siteKey} data-theme="auto" />
+          fails the submit with no explanation the visitor can act on.
+          data-action binds the token to this form, so one minted anywhere else
+          is refused server-side. */}
+      <div
+        className="cf-turnstile"
+        data-sitekey={siteKey}
+        data-action={TURNSTILE_ACTION}
+        data-theme="auto"
+      />
 
       {state.status === "error" ? (
         <p role="alert" className="text-accent">

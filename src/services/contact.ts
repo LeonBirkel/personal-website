@@ -1,11 +1,28 @@
 import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma, type ContactInquiry } from "@/generated/prisma/client";
+import { assessInquiry, messageFingerprint } from "@/lib/spam-score";
 import type { ContactInput } from "@/lib/validation";
 import { notifyInquiryReceived } from "@/services/notifications";
 
-const MAX_INQUIRIES_PER_IP_PER_HOUR = 5;
-const MAX_INQUIRIES_TOTAL_PER_HOUR = 30;
+const MAX_INQUIRIES_PER_IP_PER_HOUR = 3;
+const MAX_INQUIRIES_PER_EMAIL_PER_DAY = 3;
+const MAX_NOTIFICATIONS_PER_HOUR = 30;
+
+/**
+ * Spam is stored so a false positive stays recoverable, but a flood from
+ * rotating addresses must not fill the database. Past this many stored spam
+ * rows in an hour, further spam is dropped. Legitimate mail is never affected,
+ * because the cap is only consulted once a message has already scored as spam.
+ */
+const MAX_SPAM_STORED_PER_HOUR = 50;
+
+/** A bot campaign replays one body for days, so the window is generous. */
+const DUPLICATE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Enough repeats to be a pattern, few enough that a real follow-up is fine. */
+const REPEAT_SENDER_THRESHOLD = 2;
+
 const SERIALIZATION_RETRIES = 4;
 
 export class RateLimitError extends Error {
@@ -40,30 +57,74 @@ function isSerializationConflict(error: unknown): boolean {
 
 /**
  * Per-IP limit (an absent/spoofable IP still counts against the shared
- * "unknown" bucket). Count and insert run in one serializable transaction, so
- * concurrent submissions cannot all read the pre-insert state and all pass.
- * Postgres aborts the losers (P2034), which retry and then count correctly.
+ * "unknown" bucket). Counting, scoring and the insert run in one serializable
+ * transaction, so concurrent submissions cannot all read the pre-insert state
+ * and all pass. Postgres aborts the losers (P2034), which retry and then count
+ * correctly.
  *
- * The global hourly cap degrades instead of denying: the inquiry is stored,
- * only the notification is skipped. Rejecting would let one flood silence the
- * site's only contact channel for everyone else.
+ * Scoring decides where the message lands, never whether it is accepted. Spam
+ * is filed out of the inbox and notifies nobody, so a misjudged message is
+ * still there to recover. The notification cap counts only messages that
+ * passed as legitimate, so a spam flood can no longer silence the alert for
+ * real mail.
  */
-export async function createInquiry(data: ContactInput, ip: string | null): Promise<void> {
+export async function createInquiry(
+  data: ContactInput,
+  ip: string | null,
+  honeypotTripped: boolean,
+): Promise<void> {
   const bucket = ip ?? "unknown";
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const now = Date.now();
+  const oneHourAgo = new Date(now - 60 * 60 * 1000);
+  const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+  const duplicatesSince = new Date(now - DUPLICATE_WINDOW_MS);
+  const messageHash = messageFingerprint(data.message);
 
-  let notify = true;
+  let notify = false;
   for (let attempt = 1; ; attempt++) {
     try {
       notify = await prisma.$transaction(
         async (tx) => {
-          const [perIp, total] = await Promise.all([
+          const [perIp, perEmail, duplicates, spamStored, legitimateThisHour] = await Promise.all([
             tx.contactInquiry.count({ where: { ip: bucket, createdAt: { gte: oneHourAgo } } }),
-            tx.contactInquiry.count({ where: { createdAt: { gte: oneHourAgo } } }),
+            tx.contactInquiry.count({
+              where: { email: data.email, createdAt: { gte: oneDayAgo } },
+            }),
+            tx.contactInquiry.count({
+              where: { messageHash, createdAt: { gte: duplicatesSince } },
+            }),
+            tx.contactInquiry.count({
+              where: { spam: true, createdAt: { gte: oneHourAgo } },
+            }),
+            tx.contactInquiry.count({
+              where: { spam: false, createdAt: { gte: oneHourAgo } },
+            }),
           ]);
           if (perIp >= MAX_INQUIRIES_PER_IP_PER_HOUR) throw new RateLimitError();
-          await tx.contactInquiry.create({ data: { ...data, ip: bucket } });
-          return total < MAX_INQUIRIES_TOTAL_PER_HOUR;
+
+          const assessment = assessInquiry(data, {
+            honeypotTripped,
+            duplicateOfRecent: duplicates > 0,
+            repeatSender: perEmail >= REPEAT_SENDER_THRESHOLD,
+          });
+          const row = {
+            ...data,
+            ip: bucket,
+            messageHash,
+            spam: assessment.spam,
+            spamScore: assessment.score,
+            spamReasons: assessment.reasons.join("; ") || null,
+          };
+
+          if (assessment.spam) {
+            if (spamStored < MAX_SPAM_STORED_PER_HOUR)
+              await tx.contactInquiry.create({ data: row });
+            return false;
+          }
+
+          if (perEmail >= MAX_INQUIRIES_PER_EMAIL_PER_DAY) throw new RateLimitError();
+          await tx.contactInquiry.create({ data: row });
+          return legitimateThisHour < MAX_NOTIFICATIONS_PER_HOUR;
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
@@ -81,10 +142,32 @@ export async function createInquiry(data: ContactInput, ip: string | null): Prom
   if (notify) after(() => notifyInquiryReceived(data));
 }
 
+/** The inbox. Spam is deliberately excluded, `listSpamInquiries` serves it. */
 export async function listInquiries(): Promise<ContactInquiry[]> {
-  return prisma.contactInquiry.findMany({ orderBy: { createdAt: "desc" } });
+  return prisma.contactInquiry.findMany({
+    where: { spam: false },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function listSpamInquiries(): Promise<ContactInquiry[]> {
+  return prisma.contactInquiry.findMany({
+    where: { spam: true },
+    orderBy: { createdAt: "desc" },
+  });
 }
 
 export async function deleteInquiry(id: string): Promise<void> {
   await prisma.contactInquiry.delete({ where: { id } });
+}
+
+/** Bulk cleanup, because a campaign leaves more rows than anyone deletes by hand. */
+export async function deleteAllSpamInquiries(): Promise<number> {
+  const { count } = await prisma.contactInquiry.deleteMany({ where: { spam: true } });
+  return count;
+}
+
+/** Recovers a misjudged message into the inbox. The score is kept for tuning. */
+export async function markInquiryNotSpam(id: string): Promise<void> {
+  await prisma.contactInquiry.update({ where: { id }, data: { spam: false } });
 }

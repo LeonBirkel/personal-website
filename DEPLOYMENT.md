@@ -97,8 +97,22 @@ docker compose --profile tunnel up -d
 Recommended Cloudflare settings:
 
 - SSL/TLS mode: **Full (Strict)**
-- Turnstile: a widget covering your domain, Managed mode. Put its keys in
-  `.env` (`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`).
+- Turnstile: a widget covering your domain. Put its keys in `.env`
+  (`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`). Two widget settings matter
+  more than anything in this repo, because the app can only check a token that
+  Cloudflare already decided to issue:
+  - **Widget mode.** Managed passes most visitors without a click, which also
+    means it passes automation that drives a real browser or buys a solve from
+    a captcha-solving service. If the form is being abused, switch the widget
+    to **Interactive**. It costs a legitimate visitor one click.
+  - **Hostname list.** Restrict the widget to your own domain, nothing else.
+    The app refuses a token that Cloudflare reports as solved on another
+    hostname, but the widget should not have issued it in the first place.
+- Contact-form rate limiting: a WAF rate-limiting rule scoped to
+  `http.request.method eq "POST" and http.request.uri.path eq "/contact"` stops
+  a flood at the edge, before it reaches the app. Scope it to that path and
+  method. A site-wide bot rule would block the AI and search crawlers the
+  section below is about.
 - HSTS: the app already sends
   `Strict-Transport-Security: max-age=31536000; includeSubDomains` in
   production, so Cloudflare's HSTS toggle is optional. Turning it on as well

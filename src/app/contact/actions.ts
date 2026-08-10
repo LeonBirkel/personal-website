@@ -1,9 +1,21 @@
 "use server";
 
+import { tooManyAttempts } from "@/lib/attempt-limit";
+import { HONEYPOT_FIELD } from "@/lib/contact-fields";
 import { requestIp } from "@/lib/request-ip";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { contactSchema } from "@/lib/validation";
 import { RateLimitError, createInquiry } from "@/services/contact";
+
+/**
+ * Verification runs against Cloudflare, so an unthrottled endpoint lets one
+ * client drive unbounded outbound requests. This bounds the attempts, not the
+ * stored inquiries, which the service limits separately.
+ */
+const MAX_ATTEMPTS_PER_IP = 10;
+const ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
+
+const SUCCESS_MESSAGE = "Thanks, your message has been sent.";
 
 type ContactFields = "name" | "email" | "subject" | "message";
 
@@ -43,6 +55,10 @@ export async function submitContactForm(
   }
 
   const ip = await requestIp();
+  if (tooManyAttempts(ip ?? "unknown", MAX_ATTEMPTS_PER_IP, ATTEMPT_WINDOW_MS)) {
+    return { status: "error", message: "Too many attempts. Please try again later.", values };
+  }
+
   const token = formData.get("cf-turnstile-response");
   const human = typeof token === "string" && (await verifyTurnstileToken(token, ip));
   if (!human) {
@@ -53,8 +69,10 @@ export async function submitContactForm(
     };
   }
 
+  const honeypotTripped = String(formData.get(HONEYPOT_FIELD) ?? "").trim().length > 0;
+
   try {
-    await createInquiry(parsed.data, ip);
+    await createInquiry(parsed.data, ip, honeypotTripped);
   } catch (error) {
     if (error instanceof RateLimitError) {
       return { status: "error", message: error.message, values };
@@ -63,5 +81,8 @@ export async function submitContactForm(
     return { status: "error", message: "Something went wrong. Please try again later.", values };
   }
 
-  return { status: "success", message: "Thanks, your message has been sent." };
+  // Deliberately the same answer whether the message reached the inbox or the
+  // spam list. Telling a bot it was caught is how it learns to tune itself,
+  // and a person caught by mistake still had their message stored.
+  return { status: "success", message: SUCCESS_MESSAGE };
 }

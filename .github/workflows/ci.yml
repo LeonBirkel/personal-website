@@ -80,6 +80,10 @@ jobs:
           fi
       - name: npm audit
         run: npm audit --audit-level=high
+      # Guards both directions. A rule change that starts filing ordinary
+      # research mail as spam fails here, not in production.
+      - name: Spam-filter smoke test
+        run: npx tsx scripts/smoke-spam-filter.ts
       - name: Structured-data smoke test
         run: |
           npx next start -p 3000 &
