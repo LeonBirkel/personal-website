@@ -90,14 +90,15 @@ jobs:
           for i in $(seq 1 30); do curl -sf http://localhost:3000 >/dev/null && break; sleep 1; done
           node scripts/smoke-structured-data.mjs http://localhost:3000
 
-  # Prettier + Stylelint only — ESLint 9 (flat config) is incompatible with
-  # MegaLinter's bundled ESLint 8 and runs natively in check-build instead.
+  # Prettier + Stylelint only. ESLint runs natively in check-build instead:
+  # MegaLinter v10 ships ESLint 10, which eslint-config-next cannot load yet
+  # (its bundled eslint-plugin-react crashes on it, see TODO.md).
   megalinter:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - name: MegaLinter
-        uses: oxsecurity/megalinter/flavors/javascript@v9
+        uses: oxsecurity/megalinter/flavors/javascript@v10
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: true

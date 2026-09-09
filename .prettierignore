@@ -11,3 +11,6 @@ ops/systemd
 
 # generated from src/config/site-config-schema.ts, not hand-formatted
 site.config.schema.json
+
+# Claude Code worktrees (gitignored checkouts of this repo)
+.claude
