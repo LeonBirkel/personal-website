@@ -5,10 +5,21 @@ import { getSiteConfig, getSiteUrl } from "@/config/site-config";
  * Only fires from the canonical production origin with a configured key.
  * dev and CI stay silent.
  */
+export type IndexNowStatus = "on" | "no-key" | "off-origin";
+
+/**
+ * Why a ping is or is not sent, shared with the admin dashboard so the panel
+ * cannot claim "pings on" for a condition the ping itself would skip.
+ */
+export function indexNowStatus(): IndexNowStatus {
+  if (!process.env.INDEXNOW_KEY) return "no-key";
+  return getSiteUrl() === getSiteConfig().site.canonicalOrigin ? "on" : "off-origin";
+}
+
 export async function pingIndexNow(paths: string[]): Promise<void> {
+  if (indexNowStatus() !== "on") return;
   const key = process.env.INDEXNOW_KEY;
   const origin = getSiteConfig().site.canonicalOrigin;
-  if (!key || getSiteUrl() !== origin) return;
 
   const host = new URL(origin).host;
   try {

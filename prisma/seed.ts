@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { getSiteConfig } from "../src/config/site-config";
 import type { SeedContent } from "../src/config/site-config-schema";
 import { hashPassword } from "../src/lib/password";
+import { SEED_COMPLETED_KEY } from "../src/lib/settings-keys";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 /**
@@ -18,8 +19,6 @@ import { PrismaClient } from "../src/generated/prisma/client";
  * `active`/`featured` flags of existing rows: those are curation choices made
  * in the admin portal.
  */
-
-const SEED_COMPLETED_KEY = "seed:completed";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),

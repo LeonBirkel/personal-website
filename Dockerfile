@@ -51,6 +51,12 @@ COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/.next ./.next
 COPY --chown=node:node docker/entrypoint.sh ./entrypoint.sh
 RUN mkdir -p /app/uploads && chown node:node /app/uploads && chmod +x ./entrypoint.sh
+# Build provenance shown on the admin dashboard. CD passes both. A local build
+# leaves them empty and the dashboard says so.
+ARG GIT_SHA=""
+ARG BUILD_DATE=""
+ENV GIT_SHA=$GIT_SHA
+ENV BUILD_DATE=$BUILD_DATE
 USER node
 EXPOSE 3000
 ENTRYPOINT ["./entrypoint.sh"]

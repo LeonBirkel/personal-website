@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { SystemPanel } from "@/components/admin/system-panel";
 import { Container, PageHeader } from "@/components/register";
 import { requireAdmin } from "@/lib/admin-session";
 import { dashboardCounts } from "@/services/stats";
+import { getSystemInfo } from "@/services/system-info";
 
 export default async function AdminDashboardPage() {
   await requireAdmin();
-  const counts = await dashboardCounts();
+  const [counts, system] = await Promise.all([dashboardCounts(), getSystemInfo()]);
 
   const cards = [
     { label: "Publications", count: counts.publications, href: "/admin/publications" },
@@ -28,6 +30,7 @@ export default async function AdminDashboardPage() {
             </li>
           ))}
         </ul>
+        <SystemPanel info={system} />
         <p className="mono-label mt-10 text-muted">
           <Link className="link-underline text-text" href="/">
             View site →

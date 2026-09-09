@@ -110,3 +110,16 @@ export async function verifyTurnstileToken(token: string, ip: string | null): Pr
     return false;
   }
 }
+
+export type TurnstileSecretMode = "real" | "test" | "missing";
+
+/**
+ * Mirrors the entrypoint's boot warning. Cloudflare's public test keys (prefix
+ * 1x, 2x, 3x) make siteverify accept any input, so a form running on them is
+ * unguarded, and an empty secret makes the form reject every submission.
+ */
+export function turnstileSecretMode(): TurnstileSecretMode {
+  const secret = process.env.TURNSTILE_SECRET_KEY ?? "";
+  if (!secret) return "missing";
+  return isTestSecret(secret) ? "test" : "real";
+}

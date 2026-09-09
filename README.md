@@ -35,6 +35,9 @@ author's own site. It runs the exact image this repository publishes.
   optional Discord notifications, and uploads (portrait, PDFs) on a
   persistent volume. Every mutation revalidates
   the affected pages and their machine-readable twins, then pings IndexNow.
+  The dashboard shows what is running: version, build, runtime, framework
+  versions, and health checks for the Turnstile keys, notifications, IndexNow
+  and the two images.
 - **Identity theming.** Your name, wordmark initials, portrait, bio, accent
   color, and all copy come from the config. The visual system itself stays
   consistent across instances.

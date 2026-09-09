@@ -32,6 +32,11 @@ export function portraitExists(): boolean {
   return existsSync(resolveFile(getSiteConfig().person.portraitPath));
 }
 
+/** The dedicated 1200x630 link-preview crop, as opposed to the portrait fallback. */
+export function ogImageExists(): boolean {
+  return existsSync(resolveFile(getSiteConfig().person.ogImagePath));
+}
+
 /**
  * The og:image, which is a different job from the portrait. A tall portrait
  * handed to a link preview gets centre-cropped by each platform's own rules,
@@ -45,7 +50,7 @@ export function portraitExists(): boolean {
  */
 export function resolveOgImage(): { url: string; width?: number; height?: number } | null {
   const { ogImagePath, portraitPath } = getSiteConfig().person;
-  if (existsSync(resolveFile(ogImagePath))) return { url: ogImagePath, ...OG_IMAGE_SIZE };
+  if (ogImageExists()) return { url: ogImagePath, ...OG_IMAGE_SIZE };
   if (existsSync(resolveFile(portraitPath))) return { url: portraitPath };
   return null;
 }
