@@ -1,6 +1,6 @@
 {
   "name": "personal-website",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -22,38 +22,34 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@node-rs/argon2": "^2.2.0",
-    "@prisma/adapter-pg": "^7.10.0",
-    "@prisma/client": "^7.10.0",
-    "better-auth": "^1.7.3",
-    "dotenv": "^17.2.3",
-    "marked": "^18.0.12",
-    "next": "^16.3.4",
+    "@node-rs/argon2": "^2.2.2",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "better-auth": "^1.7.26",
+    "dotenv": "^17.4.2",
+    "marked": "^18.2.1",
+    "next": "^16.4.6",
     "png-to-ico": "^3.0.2",
-    "prisma": "^7.10.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "schema-dts": "^2.0.0",
-    "tsx": "^4.23.13",
-    "zod": "^4.5.4"
+    "prisma": "^7.10.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "schema-dts": "^2.1.0",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.7"
   },
   "engines": {
     "node": ">=24"
   },
-  "overrides": {
-    "mysql2": "^3.24.4",
-    "deepmerge-ts": "^8.0.2"
-  },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.11",
-    "@types/node": "^26.5.0",
-    "@types/react": "^19.1.9",
-    "@types/react-dom": "^19.2.7",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.4",
-    "jscpd": "^5.2.0",
-    "prettier": "^3.6.2",
-    "stylelint": "^17.15.0",
+    "eslint-config-next": "^16.4.6",
+    "jscpd": "^5.4.3",
+    "prettier": "^3.10.1",
+    "stylelint": "^17.16.0",
     "stylelint-config-standard": "^40.0.0",
     "tailwindcss": "^4.1.11",
     "typescript": "^6.0.3"
