@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { JsonLd } from "@/components/json-ld";
 import { Container, LedgerRow, RegisterRule } from "@/components/register";
 import { getSiteConfig } from "@/config/site-config";
 import { graph, profilePageNode } from "@/lib/jsonld";
 import { buildSharedOpenGraph, pageAlternates } from "@/lib/metadata";
+import { portraitExists } from "@/lib/portrait";
 import { formatDate, isoDate } from "@/lib/site";
 import { renderInlineMarkdown } from "@/lib/markdown";
 import { listFeaturedPublications } from "@/services/publications";
@@ -75,29 +77,48 @@ export default async function HomePage() {
           <Crosshair position="bottom-0 left-0" />
           <Crosshair position="bottom-0 right-0" />
 
-          <p className="mono-label text-muted">{home.eyebrow}</p>
-          <h1 className="mt-4 text-[clamp(2.75rem,7vw,4.75rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
-            {person.name}
-            <span aria-hidden="true" className="cursor-blink" />
-          </h1>
-          <p className="md-inline mt-6 max-w-[65ch]">
-            {heroIntro()}
-            <span dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(home.pitch) }} />
-          </p>
-          <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-1">
-            {metaLinks().map(({ label, href, external }) => (
-              <li key={label}>
-                <a
-                  className="mono-label link-underline inline-block py-3 text-text"
-                  href={href}
-                  {...(external ? { target: "_blank", rel: "me noopener" } : { rel: "me" })}
-                >
-                  {label}
-                  {external ? <span aria-hidden="true"> ↗</span> : null}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-12">
+            <div className="min-w-0">
+              <p className="mono-label text-muted">{home.eyebrow}</p>
+              <h1 className="mt-4 text-[clamp(2.75rem,7vw,4.75rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
+                {person.name}
+                <span aria-hidden="true" className="cursor-blink" />
+              </h1>
+              <p className="md-inline mt-6 max-w-[65ch]">
+                {heroIntro()}
+                <span dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(home.pitch) }} />
+              </p>
+              <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-1">
+                {metaLinks().map(({ label, href, external }) => (
+                  <li key={label}>
+                    <a
+                      className="mono-label link-underline inline-block py-3 text-text"
+                      href={href}
+                      {...(external ? { target: "_blank", rel: "me noopener" } : { rel: "me" })}
+                    >
+                      {label}
+                      {external ? <span aria-hidden="true"> ↗</span> : null}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* The JSON-LD image, shown to readers as well. Google asks that marked-up
+                content be visible, and visitors recognise the person they came for.
+                Above the name on phones, beside the intro from md up. */}
+            {portraitExists() ? (
+              <div className="relative order-first aspect-square w-[clamp(5.5rem,14vw,12.5rem)] shrink-0 overflow-hidden border border-hairline md:order-last md:mb-3">
+                <Image
+                  src={person.portraitPath}
+                  alt={`Portrait of ${person.name}`}
+                  fill
+                  sizes="(min-width: 768px) 270px, 100px"
+                  loading="eager"
+                  className="object-cover"
+                />
+              </div>
+            ) : null}
+          </div>
         </section>
       </Container>
 
