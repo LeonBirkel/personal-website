@@ -27,8 +27,8 @@ systemd/              units installed to /etc/systemd/system
   personal-website-backup.service   oneshot wrapper around site-backup
   personal-website-backup.timer     daily at 02:30 UTC
 install.sh            installs all of the above, idempotently, with backups
-wikidata-*.txt        the real QuickStatements batches that created the reference
-                      instance's Wikidata items, kept as a worked example for the
+wikidata-*.txt        the real QuickStatements batches that create and update the
+                      reference instance's Wikidata items, kept as a worked example for the
                       off-site entity playbook in CLAUDE.md
 private/              gitignored. Server-specific notes and values, never published
 ```

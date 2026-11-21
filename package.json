@@ -53,5 +53,10 @@
     "stylelint-config-standard": "^40.0.0",
     "tailwindcss": "^4.1.11",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "@prisma/config": {
+      "effect": "3.22.5"
+    }
   }
 }
