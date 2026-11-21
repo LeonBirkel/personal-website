@@ -77,7 +77,7 @@ export default async function HomePage() {
           <Crosshair position="bottom-0 left-0" />
           <Crosshair position="bottom-0 right-0" />
 
-          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-12">
+          <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-12">
             <div className="min-w-0">
               <p className="mono-label text-muted">{home.eyebrow}</p>
               <h1 className="mt-4 text-[clamp(2.75rem,7vw,4.75rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
@@ -105,14 +105,17 @@ export default async function HomePage() {
             </div>
             {/* The JSON-LD image, shown to readers as well. Google asks that marked-up
                 content be visible, and visitors recognise the person they came for.
-                Above the name on phones, beside the intro from md up. */}
+                Above the name on phones. From md up it sits beside the text: the top
+                margin skips the eyebrow line so the frame starts level with the name,
+                and from lg up 13.5rem matches the name plus intro, which measure about
+                13.6rem at every width because the type scales with the root size. */}
             {portraitExists() ? (
-              <div className="relative order-first aspect-square w-[clamp(5.5rem,14vw,12.5rem)] shrink-0 overflow-hidden border border-hairline md:order-last md:mb-3">
+              <div className="relative order-first aspect-square w-24 shrink-0 overflow-hidden border border-hairline md:order-last md:mt-[2.375rem] md:w-[9.5rem] lg:w-[13.5rem]">
                 <Image
                   src={person.portraitPath}
                   alt={`Portrait of ${person.name}`}
                   fill
-                  sizes="(min-width: 768px) 270px, 100px"
+                  sizes="(min-width: 1024px) 300px, (min-width: 768px) 160px, 100px"
                   loading="eager"
                   className="object-cover"
                 />
