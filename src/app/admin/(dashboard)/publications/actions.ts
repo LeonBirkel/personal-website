@@ -22,6 +22,7 @@ function parseForm(formData: FormData): AdminFormState | { data: PublicationInpu
     lastPage: formData.get("lastPage") ?? "",
     doi: formData.get("doi") ?? "",
     pdfUrl: formData.get("pdfUrl") ?? "",
+    wikidataId: formData.get("wikidataId") ?? "",
     abstract: formData.get("abstract") ?? "",
     bibtex: formData.get("bibtex") ?? "",
     active: formData.get("active") === "on",
@@ -45,6 +46,7 @@ function toData(input: PublicationInput) {
     lastPage: input.lastPage ?? null,
     doi: input.doi ?? null,
     pdfUrl: input.pdfUrl ?? null,
+    wikidataId: input.wikidataId ?? null,
     abstract: input.abstract ?? null,
     bibtex: input.bibtex ?? null,
   };

@@ -10,6 +10,7 @@ import type {
 } from "schema-dts";
 import { getIds, getPersonSameAs, getSiteConfig } from "@/config/site-config";
 import { portraitExists } from "@/lib/portrait";
+import { wikidataUrl } from "@/lib/site";
 import type { NewsItem, Publication } from "@/generated/prisma/client";
 
 /**
@@ -129,6 +130,12 @@ export function profilePageNode(dateModified?: Date): ProfilePage {
 export function scholarlyArticleNode(pub: Publication): ScholarlyArticle {
   const config = getSiteConfig();
   const url = `${config.site.canonicalOrigin}/publications/${pub.slug}`;
+  // The DOI resolver and the Wikidata item identify the same work, which lets
+  // Google join this page to the paper's entity rather than guess from text.
+  const sameAs = [
+    ...(pub.doi ? [`https://doi.org/${pub.doi}`] : []),
+    ...(pub.wikidataId ? [wikidataUrl(pub.wikidataId)] : []),
+  ];
   return {
     "@type": "ScholarlyArticle",
     "@id": `${url}#article`,
@@ -154,9 +161,9 @@ export function scholarlyArticleNode(pub: Publication): ScholarlyArticle {
             propertyID: "DOI",
             value: pub.doi,
           },
-          sameAs: `https://doi.org/${pub.doi}`,
         }
       : {}),
+    ...(sameAs.length === 1 ? { sameAs: sameAs[0] } : sameAs.length > 1 ? { sameAs } : {}),
     url,
   };
 }

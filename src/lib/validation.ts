@@ -62,6 +62,12 @@ export const publicationSchema = z.object({
     .max(500)
     .optional()
     .or(z.literal("").transform(() => undefined)),
+  wikidataId: z
+    .string()
+    .trim()
+    .regex(/^Q[1-9]\d{0,11}$/, "Wikidata ID must look like Q12345")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   abstract: z
     .string()
     .max(10000)

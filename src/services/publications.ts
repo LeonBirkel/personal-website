@@ -12,6 +12,7 @@ export type PublicationData = Omit<
   | "lastPage"
   | "doi"
   | "pdfUrl"
+  | "wikidataId"
   | "abstract"
   | "bibtex"
 > & {
@@ -21,6 +22,7 @@ export type PublicationData = Omit<
   lastPage?: number | null;
   doi?: string | null;
   pdfUrl?: string | null;
+  wikidataId?: string | null;
   abstract?: string | null;
   bibtex?: string | null;
 };

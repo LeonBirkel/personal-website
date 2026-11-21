@@ -1,5 +1,5 @@
 import { getPersonSameAs, getSiteConfig } from "@/config/site-config";
-import { absoluteUrl, isoDate } from "@/lib/site";
+import { absoluteUrl, isoDate, wikidataUrl } from "@/lib/site";
 import { projectLinks } from "@/lib/project-links";
 import { bibtexFor, listFeaturedPublications, listPublications } from "@/services/publications";
 import { listActiveProjects, listFeaturedProjects } from "@/services/projects";
@@ -95,6 +95,7 @@ export async function publicationMarkdown(pub: Publication): Promise<string> {
   if (pub.firstPage && pub.lastPage) lines.push(`- Pages: ${pub.firstPage}–${pub.lastPage}`);
   if (pub.doi) lines.push(`- DOI: [${pub.doi}](https://doi.org/${pub.doi})`);
   if (pub.pdfUrl) lines.push(`- PDF: ${absoluteUrl(pub.pdfUrl)}`);
+  if (pub.wikidataId) lines.push(`- Wikidata: ${wikidataUrl(pub.wikidataId)}`);
   lines.push(`- BibTeX: ${absoluteUrl(`/publications/${pub.slug}.bib`)}`);
   if (pub.abstract) lines.push("", "## Abstract", "", pub.abstract);
   lines.push("", "## BibTeX", "", "```bibtex", bibtexFor(pub), "```");

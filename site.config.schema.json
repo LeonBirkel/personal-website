@@ -701,6 +701,18 @@
                   }
                 ]
               },
+              "wikidataId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^Q[1-9]\\d{0,11}$"
+                  },
+                  {
+                    "type": "string",
+                    "const": ""
+                  }
+                ]
+              },
               "abstract": {
                 "anyOf": [
                   {

@@ -5,6 +5,11 @@ export function absoluteUrl(path: string): string {
   return new URL(path, getSiteUrl()).toString();
 }
 
+/** Canonical page of a Wikidata item, the form Google and Wikidata itself use in sameAs. */
+export function wikidataUrl(itemId: string): string {
+  return `https://www.wikidata.org/wiki/${itemId}`;
+}
+
 export function formatDate(date: Date): string {
   return date.toLocaleDateString("en-US", {
     year: "numeric",

@@ -23,6 +23,7 @@ model Publication {
   lastPage        Int?
   doi             String?
   pdfUrl          String?
+  wikidataId      String? // the work's Wikidata item, e.g. Q42, emitted in the article's sameAs
   abstract        String? // markdown
   bibtex          String?
   active          Boolean  @default(true)

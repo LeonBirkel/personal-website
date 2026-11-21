@@ -161,6 +161,19 @@ export function PublicationForm({
             defaultValue={publication?.pdfUrl ?? ""}
           />
         </AdminField>
+        <AdminField
+          label="Wikidata item"
+          name="wikidataId"
+          error={errors?.wikidataId}
+          hint="e.g. Q12345, linked as sameAs (optional)"
+        >
+          <input
+            className={INPUT_CLASSES}
+            id="wikidataId"
+            name="wikidataId"
+            defaultValue={publication?.wikidataId ?? ""}
+          />
+        </AdminField>
       </div>
       <AdminField
         label="Abstract"

@@ -1,5 +1,5 @@
 import { getSiteConfig } from "@/config/site-config";
-import { absoluteUrl } from "@/lib/site";
+import { absoluteUrl, wikidataUrl } from "@/lib/site";
 import { listPublications } from "@/services/publications";
 
 export const revalidate = 300;
@@ -19,6 +19,7 @@ export async function GET() {
       firstPage: pub.firstPage,
       lastPage: pub.lastPage,
       doi: pub.doi,
+      wikidata: pub.wikidataId ? wikidataUrl(pub.wikidataId) : null,
       url: absoluteUrl(`/publications/${pub.slug}`),
       pdf: pub.pdfUrl ? absoluteUrl(pub.pdfUrl) : null,
       bibtex: absoluteUrl(`/publications/${pub.slug}.bib`),
