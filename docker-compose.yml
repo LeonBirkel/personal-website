@@ -33,6 +33,8 @@ services:
     environment:
       DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://postgres:postgres@db:5432/personal_website}
       UPLOADS_DIR: /app/uploads
+      # Overrides the dev path from .env, which does not exist in the image.
+      SITE_CONFIG_PATH: /app/site.config.json
     ports:
       # Loopback only — Cloudflare-proxied traffic reaches the app via the
       # host reverse path; 0.0.0.0 would bypass Cloudflare (and ufw) entirely.
@@ -40,7 +42,8 @@ services:
     volumes:
       - uploads:/app/uploads
       # The instance identity. The image itself carries no personal data.
-      - ./site.config.json:/app/site.config.json:ro
+      # Swap in your own file to test it in the full stack.
+      - ./deploy/site.config.example.json:/app/site.config.json:ro
     depends_on:
       db:
         condition: service_healthy

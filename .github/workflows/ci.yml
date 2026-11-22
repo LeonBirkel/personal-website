@@ -49,10 +49,8 @@ jobs:
         run: npx jscpd src
       - name: Config schema in sync
         run: npm run schema:check
-      - name: Validate site configs
-        run: |
-          npx tsx scripts/validate-site-config.ts deploy/site.config.example.json
-          npx tsx scripts/validate-site-config.ts site.config.json
+      - name: Validate the example config
+        run: npx tsx scripts/validate-site-config.ts deploy/site.config.example.json
 
       # The ops scripts run as root on the production server. They deserve the
       # same scrutiny as the app, which they did not get while they lived only
@@ -92,7 +90,7 @@ jobs:
 
   # Prettier + Stylelint only. ESLint runs natively in check-build instead:
   # MegaLinter v10 ships ESLint 10, which eslint-config-next cannot load yet
-  # (its bundled eslint-plugin-react crashes on it, see TODO.md).
+  # (its bundled eslint-plugin-react crashes on it, see ROADMAP.md).
   megalinter:
     runs-on: ubuntu-latest
     steps:

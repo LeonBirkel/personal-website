@@ -21,7 +21,7 @@
         },
         "orgIdFragment": {
           "default": "org",
-          "description": "Fragment of the affiliation Organization @id, e.g. \"tum\" for <origin>/#tum. Never change it after launch.",
+          "description": "Fragment of the affiliation Organization @id, e.g. \"eu\" for <origin>/#eu. Never change it after launch.",
           "type": "string",
           "maxLength": 40,
           "pattern": "^[a-z0-9-]+$"
@@ -298,7 +298,7 @@
           "maxLength": 200
         },
         "alternateName": {
-          "description": "Short name, e.g. \"TUM\"",
+          "description": "Short name, e.g. \"EU\"",
           "type": "string",
           "maxLength": 60
         },
@@ -458,7 +458,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 120,
-          "description": "Small line above the hero name, e.g. \"Munich, DE · Space Systems Security\""
+          "description": "Small line above the hero name, e.g. \"Zurich, CH · Distributed Systems\""
         },
         "pitch": {
           "type": "string",

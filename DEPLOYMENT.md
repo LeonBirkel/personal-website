@@ -61,6 +61,22 @@ URL-safe characters. The generator above is safe.
 `SITE_URL` and `BETTER_AUTH_URL` must both be your public origin, for example
 `https://your-domain.example`.
 
+Check the config before the first boot. This runs the image's own validator
+and needs no database:
+
+```bash
+docker compose run --rm --no-deps --entrypoint npx app tsx scripts/validate-site-config.ts
+```
+
+It prints the person, the canonical origin and the seed counts, or every
+field that is wrong.
+
+**Trying it on your own machine first?** Set `SITE_URL` and `BETTER_AUTH_URL`
+to `http://localhost:3000`. Everything works there, the admin login included.
+Only the contact form needs Turnstile keys. Cloudflare's public test keys
+(`1x00000000000000000000AA` and `1x0000000000000000000000000000000AA`) make it
+work locally. Never keep them in production.
+
 ### 2. Start
 
 ```bash
@@ -71,6 +87,10 @@ docker compose logs app    # watch the first boot: validate, migrate, seed
 
 A broken `site.config.json` stops the boot with a readable validation error.
 Fix the file and `docker compose up -d` again.
+
+The first boot seeds the publications, projects and news from your config's
+`seedContent` section. That happens once per database. From then on the admin
+portal is where content changes, and redeploys never overwrite it.
 
 ### 3. Cloudflare (recommended)
 
@@ -136,13 +156,96 @@ curl -s -o /dev/null -w '%{http_code}\n' https://your-domain/api/health
 SITE_CONFIG_PATH=/path/to/mysite/site.config.json node scripts/smoke-structured-data.mjs https://your-domain
 ```
 
-The smoke test needs the repo checked out. `SITE_CONFIG_PATH` must point at
-the config file you filled in during setup, not at the reference config
-committed in this repository. It asserts the JSON-LD parses,
+The smoke test needs the repo checked out (`npm ci` once). `SITE_CONFIG_PATH`
+must point at the config file you filled in during setup. It asserts the
+JSON-LD parses,
 your `#person` entity is present, publication pages carry Highwire citation
 tags, and the `.bib` and `.md` twins serve. Then by hand: the site renders
 with JavaScript disabled, `/admin` redirects when signed out, and the contact
 form stores a message.
+
+### 5. Finish the profile in the admin portal
+
+Log in at `https://your-domain/admin` with `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+The dashboard's **Checks** panel lists everything still missing. Then, under
+**Settings**:
+
+- **Portrait.** Name the file `portrait.jpg` before you upload it. Use a
+  square or portrait crop. It becomes the JSON-LD `image`, which search
+  engines show as a thumbnail next to your name.
+- **Link preview.** Name it `og-image.jpg`, exactly **1200×630**. It becomes
+  the `og:image`, the card that LinkedIn, Slack and others show when someone
+  shares your site. Without it the portrait stands in, and wide cards crop it
+  badly.
+- **Inquiry notifications (optional).** A Discord webhook URL. Every message
+  from the contact form then also arrives in that channel.
+
+Both images are left out of every tag while they are missing, so nothing ever
+points at a broken file. Publication PDFs use the same uploader. Paste the
+`/uploads/…` URL it returns into the publication's **PDF URL** field.
+
+## Change the admin password
+
+`ADMIN_PASSWORD` in `.env` applies on the first boot only, and the portal has
+no password form yet. Set a new one from the host. Reading it with `read -s`
+keeps it out of your shell history:
+
+```bash
+read -rsp 'New admin password: ' NEW_ADMIN_PASSWORD; echo; export NEW_ADMIN_PASSWORD
+docker compose exec -e NEW_ADMIN_PASSWORD app npx tsx scripts/set-admin-password.ts
+unset NEW_ADMIN_PASSWORD
+```
+
+It needs at least 12 characters and signs out every open admin session.
+
+## Get recognized
+
+The site does its part on its own. These steps happen elsewhere, and they are
+what turns a website into a person entity that Google, Bing and AI assistants
+connect to your name. Do them in this order.
+
+1. **Search Console and Bing.** Verify the domain in
+   [Google Search Console](https://search.google.com/search-console) and
+   [Bing Webmaster Tools](https://www.bing.com/webmasters), and submit
+   `https://your-domain/sitemap.xml` in both. Bing's index also feeds
+   DuckDuckGo, Yahoo, Ecosia and ChatGPT's web search. Set `INDEXNOW_KEY` so
+   Bing hears about every edit right away.
+2. **Close the `sameAs` loop.** List every profile in `person.sameAs` (Google
+   Scholar, ORCID, GitHub, LinkedIn, your staff page). Then set your domain as
+   the website on each of those profiles. The links must point both ways. A
+   profile that does not exist yet goes in `person.pendingSameAs` with
+   `live: false` until it does.
+3. **Wikidata.** Once your first publication with a DOI exists, create an item
+   for yourself. The batch below fits
+   [QuickStatements](https://quickstatements.toolforge.org/) (its fields are
+   tab-separated). Replace every `<placeholder>` with a value or a Q-id from
+   Wikidata, and drop the lines you have no value for. QuickStatements may
+   refuse a brand-new account. Entering the same statements by hand on
+   wikidata.org works for anyone.
+
+   ```text
+   CREATE
+   LAST	Len	"<Your Name>"
+   LAST	Den	"researcher at <Your Institution>"
+   LAST	P31	Q5
+   LAST	P106	Q1650915
+   LAST	P108	<employer Q-id>
+   LAST	P69	<university Q-id>
+   LAST	P101	<field of work Q-id>
+   LAST	P496	"<ORCID iD>"
+   LAST	P1960	"<Google Scholar author ID>"
+   LAST	P2037	"<GitHub username>"
+   LAST	P856	"https://your-domain.example"
+   ```
+
+   `Q5` is "human" and `Q1650915` is "researcher". Then add
+   `https://www.wikidata.org/wiki/<your Q-id>` to `person.sameAs`. For your
+   affiliation, put its Wikidata and ROR URLs in `affiliation.sameAs`.
+
+4. **Use the domain everywhere.** Email signature, paper author footers, talk
+   slides.
+5. **Claim the knowledge panel.** Once Google shows one for your name, use
+   "Claim this knowledge panel" and suggest your portrait as its image.
 
 ## Updates
 

@@ -1,8 +1,7 @@
 # ops
 
 The operational side of the reference instance (leonbirkel.com): the scripts
-that run on its server, the systemd units that schedule them, and the
-prepared Wikidata batches. Consumers deploying their own instance do not need
+that run on its server and the systemd units that schedule them. Consumers deploying their own instance do not need
 anything in here, the deploy kit under [deploy/](../deploy/) is
 self-contained. These files stay public as a worked example of running an
 instance seriously.
@@ -27,10 +26,7 @@ systemd/              units installed to /etc/systemd/system
   personal-website-backup.service   oneshot wrapper around site-backup
   personal-website-backup.timer     daily at 02:30 UTC
 install.sh            installs all of the above, idempotently, with backups
-wikidata-*.txt        the real QuickStatements batches that create and update the
-                      reference instance's Wikidata items, kept as a worked example for the
-                      off-site entity playbook in CLAUDE.md
-private/              gitignored. Server-specific notes and values, never published
+private/              gitignored. The maintainer's notes, config and task list, never published
 ```
 
 ## Installing
@@ -68,5 +64,6 @@ so publish a fixed release before then.
 - `site-backup` verifies a dump before promoting it: it must list with `pg_restore` and contain
   at least five tables. A failed verification leaves the previous backups untouched rather than
   rotating a broken one into place.
-- Backups are local only, on the same disk as the data. That is a deliberate decision, recorded
-  in TODO.md. It covers a bad migration, not the loss of the machine.
+- Backups are local only, on the same disk as the data. That is a deliberate decision for the
+  reference instance. It covers a bad migration, not the loss of the machine. Copy them off the
+  host if your instance holds anything you cannot re-create.

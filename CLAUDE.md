@@ -3,8 +3,9 @@
 **personal-website**: an MIT-licensed, self-hostable framework for personal
 academic websites. One shared Docker image, zero personal data inside. Each
 instance mounts a `site.config.json` that defines the person it presents.
-Reference instance: **leonbirkel.com** (Leon Birkel, the maintainer). The
-repo root carries the reference instance's config, which dev mode uses.
+Reference instance: **leonbirkel.com** (Leon Birkel, the maintainer). Its
+config lives outside git (see "Private files"). Dev mode and CI run as the
+fictional example person from `deploy/site.config.example.json`.
 
 ## Purpose & priorities
 
@@ -152,18 +153,29 @@ max-image-preview:large` on every page — answer engines may quote freely.
   them as props from server components. No `NEXT_PUBLIC_*` variable may ever
   carry instance data (it would bake into the shared bundle).
 
-## TODO.md (living task list)
+## Roadmap and private files
 
-`TODO.md` in the repo root is the shared checklist between the maintainer and
-Claude.
+The repository is shared with other instance owners. It holds
+framework code and docs only.
 
-- **Update it in every session that changes the state of any item.** Check
-  items off as they land, add new ones as they come up, move finished work to
-  the Done section with its date.
-- Anything the maintainer has to do himself (secrets, DNS, off-site profiles,
-  content to verify) belongs there, marked as his. Anything blocked on
-  upstream belongs there with the reason.
-- It is the answer to "what is still open", so it must never go stale.
+- **`ROADMAP.md`** (tracked) is the framework's open work, accepted
+  trade-offs and settled decisions. Keep it current when a framework item
+  lands or appears.
+- **`ops/private/`** (gitignored) holds everything about the reference
+  instance and its maintainer: the instance config (`site.config.json`), the
+  task list (`TODO.md`), server notes, and off-site playbooks such as the
+  Wikidata batches. It exists only in the main checkout. From a worktree,
+  reach it at
+  `"$(git rev-parse --path-format=absolute --git-common-dir)/../ops/private/"`.
+- **`ops/private/TODO.md`** is the shared checklist between the maintainer
+  and Claude. Update it in every session that changes the state of any item.
+  Check items off as they land, add new ones as they come up, and move
+  finished work to the Done section with its date. Anything the maintainer
+  has to do himself (secrets, DNS, off-site profiles, content to verify) goes
+  there, marked as his. It must never go stale.
+- **Never commit personal data.** A note, playbook, config or log about the
+  maintainer or his server goes to `ops/private/`, never into a tracked file,
+  a commit message or a PR body.
 
 ## Responsive design (every public and admin page)
 
@@ -291,7 +303,7 @@ CD on version tag `vX.Y.Z` (must match `package.json`, release with
 - `npm run check` and `next build` pass
 - Structured data validates (Google Rich Results test + schema.org validator) — no schema regressions
 - Page renders fully with JavaScript disabled; its `.md` twin serves the same content
-- Works with the example config AND the reference config (no hardcoded person data)
+- Works with the example config AND the reference config in `ops/private/` (no hardcoded person data)
 - Responsive and accessible (keyboard navigation, contrast, alt text)
 
 ## Off-site entity checklist (playbook for every instance owner)
@@ -302,7 +314,7 @@ CD on version tag `vX.Y.Z` (must match `package.json`, release with
       loop in both directions.
 - [ ] Create a Wikidata item (human; occupation: researcher; employer;
       ORCID; official website) once the first DOI-indexed publication exists.
-      `ops/wikidata-quickstatements.txt` is a worked example.
+      DEPLOYMENT.md ("Get recognized") carries a QuickStatements template.
 - [ ] Use the domain in the email signature and in paper author footers.
 - [ ] When Google shows a knowledge panel: claim it ("Claim this knowledge
       panel") and suggest the portrait as featured image.

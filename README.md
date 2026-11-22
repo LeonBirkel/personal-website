@@ -87,24 +87,25 @@ cp .env.sample .env              # generated dev secrets; see comments
 docker compose --profile db up -d
 npm ci
 npm run migrate:dev
-npm run seed                     # admin user + seedContent from site.config.json
+npm run seed                     # admin user + the example person's content
 npm run dev                      # applies migrations, then starts next dev
 ```
 
-The repo root carries the reference instance's `site.config.json`, which dev
-mode uses by default. Point `SITE_CONFIG_PATH` at your own file to develop
-against different data.
+Dev mode runs as the fictional example person from
+`deploy/site.config.example.json`, set in `.env.sample`. To develop against
+your own data, copy it to `site.config.json` in the repo root (gitignored, so
+it never gets committed) and point `SITE_CONFIG_PATH` at it.
 
-| Command                                                          | Purpose                                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `npm run check`                                                  | typecheck and lint. **Run before every commit**                              |
-| `npm run build` / `start`                                        | production build / serve                                                     |
-| `npm run migrate:dev` / `migrate:deploy` / `studio` / `generate` | Prisma workflows                                                             |
-| `npm run seed`                                                   | seed from the config (re-runs refresh prose, never curation flags)           |
-| `npm run db:reseed`                                              | migrate, wipe **all content rows**, re-seed (dev only; keeps the admin user) |
-| `npm run schema` / `schema:check`                                | regenerate / verify `site.config.schema.json`                                |
-| `npm run config:validate`                                        | validate a site config against the schema                                    |
-| `node scripts/smoke-structured-data.mjs <url>`                   | JSON-LD / mirror smoke test                                                  |
+| Command                                                                  | Purpose                                                                      |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `npm run check`                                                          | typecheck and lint. **Run before every commit**                              |
+| `npm run build` / `start`                                                | production build / serve                                                     |
+| `npm run migrate:dev` / `migrate:deploy` / `studio` / `generate`         | Prisma workflows                                                             |
+| `npm run seed`                                                           | seed from the config (re-runs refresh prose, never curation flags)           |
+| `npm run db:reseed`                                                      | migrate, wipe **all content rows**, re-seed (dev only; keeps the admin user) |
+| `npm run schema` / `schema:check`                                        | regenerate / verify `site.config.schema.json`                                |
+| `npm run config:validate`                                                | validate a site config against the schema                                    |
+| `SITE_CONFIG_PATH=<config> node scripts/smoke-structured-data.mjs <url>` | JSON-LD / mirror smoke test against the config the site runs on              |
 
 Note: if another app occupies port 3000, run on a different port **and** set
 `BETTER_AUTH_URL` and `SITE_URL` in `.env` to match. Better-Auth rejects
@@ -151,6 +152,11 @@ a GitHub release with generated notes. Details in [CICD.md](CICD.md).
 | `/publications/<slug>.bib`                               | BibTeX per publication                                  |
 | `/news/feed.xml` · `/news/feed.json`                     | RSS · JSON Feed                                         |
 | `/sitemap.xml` · `/robots.txt` · `/manifest.webmanifest` | crawl plumbing                                          |
+
+## Roadmap and contributing
+
+Open work, accepted trade-offs and settled decisions live in
+[ROADMAP.md](ROADMAP.md). How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

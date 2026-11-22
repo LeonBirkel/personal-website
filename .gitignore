@@ -41,8 +41,14 @@ next-env.d.ts
 # runtime uploads
 /uploads
 
-# instance-specific server notes, never published
+# The maintainer's private files: instance notes, the reference config, the
+# task list. Never published.
 /ops/private/
+
+# Your own instance config at the default path. It is personal data, so it
+# never gets committed. The tracked starting point is
+# deploy/site.config.example.json.
+/site.config.json
 
 # local Claude Code files (worktrees, launch config)
 /.claude/

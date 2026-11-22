@@ -29,7 +29,7 @@ const CASES: Case[] = [
     input: {
       name: "Anna Weber",
       email: "a.weber@ethz.ch",
-      subject: "Question about your ARES paper",
+      subject: "Question about your workshop paper",
       message:
         "Hello, I read your paper on trusted execution and had a question about the threat model in section 4. Would you have time for a short call next week?",
     },
@@ -40,9 +40,9 @@ const CASES: Case[] = [
     input: {
       name: "Marco Bianchi",
       email: "marco@uni-trento.it",
-      subject: "Collaboration on satellite link security",
+      subject: "Collaboration on network protocol security",
       message:
-        "We work on a similar problem. Our preprint is at https://arxiv.org/abs/2401.01234 and I would value your view on the orbital-mechanics argument.",
+        "We work on a similar problem. Our preprint is at https://arxiv.org/abs/2401.01234 and I would value your view on the timing argument.",
     },
     expectSpam: false,
   },

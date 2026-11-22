@@ -103,8 +103,8 @@ export const siteConfigSchema = z.strictObject({
       .max(40)
       .default("org")
       .describe(
-        'Fragment of the affiliation Organization @id, e.g. "tum" for ' +
-          "<origin>/#tum. Never change it after launch.",
+        'Fragment of the affiliation Organization @id, e.g. "eu" for ' +
+          "<origin>/#eu. Never change it after launch.",
       ),
   }),
 
@@ -296,7 +296,7 @@ export const siteConfigSchema = z.strictObject({
   affiliation: z
     .strictObject({
       name: z.string().min(1).max(200),
-      alternateName: z.string().max(60).optional().describe('Short name, e.g. "TUM"'),
+      alternateName: z.string().max(60).optional().describe('Short name, e.g. "EU"'),
       department: z.string().max(200).optional(),
       url: z.url().max(500),
       departmentUrl: z.url().max(500).optional(),
@@ -328,7 +328,7 @@ export const siteConfigSchema = z.strictObject({
       .string()
       .min(1)
       .max(120)
-      .describe('Small line above the hero name, e.g. "Munich, DE · Space Systems Security"'),
+      .describe('Small line above the hero name, e.g. "Zurich, CH · Distributed Systems"'),
     pitch: z
       .string()
       .min(1)

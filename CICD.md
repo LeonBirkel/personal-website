@@ -29,7 +29,7 @@ proves the framework ships no baked-in instance data.
 2. `npm run check`, which is `tsc --noEmit`, ESLint, `prettier --check` and Stylelint
 3. `npx jscpd src`, the duplication gate
 4. `npm run schema:check`, so `site.config.schema.json` never drifts from the Zod schema
-5. validation of both the example config and the reference instance's config
+5. validation of the example config
 6. shellcheck over `ops/bin`, `ops/install.sh` and the Docker entrypoint
 7. `prisma migrate deploy` and `npm run seed`
 8. `npm run build`

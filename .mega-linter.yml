@@ -1,6 +1,6 @@
 # MegaLinter: Prettier + Stylelint only. ESLint intentionally does NOT run
 # here. MegaLinter v10 ships ESLint 10, and eslint-config-next cannot load on
-# it yet (its bundled eslint-plugin-react crashes, see TODO.md). ESLint 9 runs
+# it yet (its bundled eslint-plugin-react crashes, see ROADMAP.md). ESLint 9 runs
 # natively in the check-build job via `npm run check`, which also mirrors the
 # prettier/stylelint checks locally.
 APPLY_FIXES: none
